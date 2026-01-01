@@ -1,8 +1,8 @@
 # Handoff.md
 
-**Last Updated (UTC):** 2026-01-01T11:07:47Z
+**Last Updated (UTC):** 2026-01-01T12:50:22Z
 **Status:** In Progress
-**Current Focus:** Establish agent harness and address clipboard text display bug.
+**Current Focus:** Apply Liquid Glass UI refresh and verify build/run.
 
 > RFC 2119: The keywords MUST, SHOULD, and MAY are to be interpreted as described in RFC 2119.
 
@@ -11,7 +11,7 @@
 - **Operational constraints / environment:** macOS app (SwiftUI + AppKit). Project root at `/Users/rogerlin/Downloads/ClipQueue-main-2`. No git repo yet. Network enabled. Must follow agent harness rules and maintain handoff.md.
 - **Guidelines / preferences to honor:** One feature at a time; small, reversible changes; create and maintain `feature_list.json`, `agent-progress.txt`, `handoff.md`, and `init.sh`. Use beads issues for tracking. Follow macOS-native-development patterns. Avoid unnecessary comments.
 - **Scope boundaries (explicit non-goals):** Do not attempt to implement all features in a single session. Avoid large refactors without a specific feature goal.
-- **Changes since start (dated deltas):** 2026-01-01: Created initial handoff.md before implementation.
+- **Changes since start (dated deltas):** 2026-01-01: Created initial handoff.md before implementation. 2026-01-01: Applied glass-style header/footer/search styling and shortcut keycap adjustments; built and launched app.
 
 ## 2) Requirements → Acceptance Checks (traceable)
 | Requirement | Acceptance Check (scenario steps) | Expected Outcome | Evidence to Capture |
@@ -45,6 +45,14 @@
 - [x] Diagnose clipboard text display issue — **done**; evidence: AppDelegate hides window and previously stopped monitoring.
 - [ ] Implement fix and verify UI shows text — in progress; code updated, manual verification pending.
 - [ ] Verify Dock icon appears — in progress; code updated, manual verification pending.
+- [ ] Implement history feature with SwiftData persistence — in progress; code added, manual verification pending.
+- [ ] Add selectable/copyable history items and context menus — in progress; code added, manual verification pending.
+- [ ] Fix shortcuts layout and button styling — in progress; code updated (keycap-style buttons), manual verification pending.
+- [ ] Implement search bar with live filtering — in progress; code added, manual verification pending.
+- [ ] Add source app icon capture and display — in progress; code added, manual verification pending.
+- [ ] Implement categories with color coding — in progress; code added, manual verification pending.
+- [ ] Implement pinning with persistent pinned section — in progress; code added, manual verification pending.
+- [ ] Apply Liquid Glass UI refresh — in progress; glass header/footer/search and modernized empty states added, manual verification pending.
 - [ ] Update feature_list.json pass state — planned evidence: JSON diff.
 
 ## 5) Findings, Decisions, Assumptions
@@ -52,17 +60,21 @@
 - **Decision:** Keep monitoring active when the window is hidden and make `startMonitoring()` idempotent to avoid duplicate timers.
 - **Decision:** Schedule the clipboard timer in common run loop modes to improve reliability.
 - **Decision:** Enable Dock icon by setting `LSUIElement` to false and configuring the app icon at launch.
+- **Decision:** Use SwiftData for history persistence and add a paged HistoryStore to avoid loading millions of rows.
+- **Decision:** Raise deployment target to macOS 14.0 to use SwiftData APIs.
+- **Decision:** Capture frontmost application info on copy to display source app icons in the UI.
+- **Decision:** Apply SwiftUI materials to header/footer and use ContentUnavailableView for modern empty states per HIG guidance on materials and hierarchy.
 - **Assumption:** The above changes fix the missing text issue; needs manual copy test to confirm.
 
 ## 6) Issues, Mistakes, Recoveries
-- None yet.
+- **Build failure → main actor call & FetchDescriptor init mismatch → fixed by dispatching bootstrap on MainActor and setting fetchOffset/fetchLimit properties → build passes.**
 
 ## 7) Scenario-Focused Resolution Tests (problem-centric)
 - **Clipboard display bug:** Repro steps pending; fix applied but not yet manually verified.
 
 ## 8) Verification Summary (evidence over intuition)
-**Fast checks run:** `xcodebuild` via Xcode Build MCP (macOS build) — succeeded.
-**Acceptance runs:** None (manual copy test pending).
+**Fast checks run:** `xcodebuild` via Xcode Build MCP (macOS build) — succeeded after Liquid Glass styling changes.
+**Acceptance runs:** App launched via Xcode Build MCP; manual functional checks pending.
 
 ## 9) Remaining Work & Next Steps
 - **Open items & blockers:** Implement R1 fix, then plan UI refresh and data model enhancements.
@@ -75,3 +87,13 @@
 - 2026-01-01T10:52:35Z: Recorded clipboard monitoring fixes and build verification.
 - 2026-01-01T10:52:35Z: Initialized git repo and created initial commits for harness and baseline project.
 - 2026-01-01T11:07:47Z: Documented Dock icon changes and updated progress ledger.
+- 2026-01-01T11:18:58Z: Logged SwiftData history work and deployment target update.
+- 2026-01-01T11:33:53Z: Recorded build failure analysis and successful rebuild.
+- 2026-01-01T11:44:51Z: Added selection/copy/context menus for queue and history views.
+- 2026-01-01T11:45:31Z: Built and launched app for manual verification.
+- 2026-01-01T11:57:18Z: Added search filtering and verified build success.
+- 2026-01-01T12:07:41Z: Added source app icon capture and display plumbing.
+- 2026-01-01T12:08:39Z: Verified build after source app icon changes.
+- 2026-01-01T12:22:47Z: Added categories/pinning and verified build success.
+- 2026-01-01T12:24:34Z: Verified build after pinned item icon update.
+- 2026-01-01T12:50:22Z: Applied glass styling to header/footer/search, updated empty states and shortcut keycaps, built and launched app.

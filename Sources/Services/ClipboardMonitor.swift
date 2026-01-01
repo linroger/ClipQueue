@@ -53,7 +53,13 @@ class ClipboardMonitor {
             return
         }
         
-        let item = ClipboardItem(content: content, type: determineType(content))
+        let sourceInfo = currentSourceAppInfo()
+        let item = ClipboardItem(
+            content: content,
+            type: determineType(content),
+            sourceAppBundleIdentifier: sourceInfo.bundleIdentifier,
+            sourceAppName: sourceInfo.name
+        )
         DispatchQueue.main.async { [weak self] in
             self?.queueManager?.addItem(item)
         }
@@ -67,5 +73,15 @@ class ClipboardMonitor {
             return .url
         }
         return .text
+    }
+
+    private func currentSourceAppInfo() -> (bundleIdentifier: String?, name: String?) {
+        guard let frontmost = NSWorkspace.shared.frontmostApplication else {
+            return (nil, nil)
+        }
+        if frontmost.bundleIdentifier == Bundle.main.bundleIdentifier {
+            return (nil, nil)
+        }
+        return (frontmost.bundleIdentifier, frontmost.localizedName)
     }
 }

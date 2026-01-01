@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import SwiftData
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
@@ -8,13 +9,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var queueManager: QueueManager?
     var clipboardMonitor: ClipboardMonitor?
     var keyboardShortcutManager: KeyboardShortcutManager?
+    var modelContainer: ModelContainer?
+    var historyStore: HistoryStore?
+    var categoryStore: CategoryStore?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         configureDockIcon()
+        applyAppearanceMode()
+
+        do {
+            modelContainer = try ModelContainer(for: ClipboardHistoryEntry.self, ClipboardCategory.self)
+            if let modelContainer {
+                historyStore = HistoryStore(modelContext: modelContainer.mainContext)
+                categoryStore = CategoryStore(modelContext: modelContainer.mainContext)
+            }
+        } catch {
+            print("⚠️ Failed to initialize history store: \(error.localizedDescription)")
+        }
 
         // Create the queue manager
-        queueManager = QueueManager()
+        queueManager = QueueManager(historyStore: historyStore)
         
         // Create the clipboard monitor
         clipboardMonitor = ClipboardMonitor(queueManager: queueManager!)
@@ -50,11 +65,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureDockIcon() {
+        if let appIcon = NSImage(named: NSImage.applicationIconName) {
+            NSApplication.shared.applicationIconImage = appIcon
+            return
+        }
+
         let config = NSImage.SymbolConfiguration(pointSize: 64, weight: .regular)
         if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
             let icon = image.withSymbolConfiguration(config) ?? image
             icon.isTemplate = false
             NSApplication.shared.applicationIconImage = icon
+        }
+    }
+
+    private func applyAppearanceMode() {
+        let mode = Preferences.shared.appearanceMode
+        switch mode {
+        case .system:
+            NSApp.appearance = nil  // Follow system
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+
+        // Observe preference changes
+        Preferences.shared.$appearanceMode.sink { [weak self] newMode in
+            self?.updateAppearance(newMode)
+        }.store(in: &cancellables)
+    }
+
+    private func updateAppearance(_ mode: AppearanceMode) {
+        switch mode {
+        case .system:
+            NSApp.appearance = nil
+        case .light:
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            NSApp.appearance = NSAppearance(named: .darkAqua)
         }
     }
     
@@ -74,6 +122,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.level = .floating  // Always on top
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
+
+        // Set minimum and maximum sizes for responsive behavior
+        window.minSize = NSSize(width: 280, height: 300)
+        window.maxSize = NSSize(width: 800, height: 1200)
         
         // Add transparency
         window.isOpaque = false
@@ -83,11 +135,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up the SwiftUI content with callback
         let contentView = QueueView(
             queueManager: queueManager!,
+            historyStore: historyStore,
+            categoryStore: categoryStore,
             onOpenPreferences: { [weak self] in
                 self?.openPreferences()
             }
         )
-        window.contentView = NSHostingView(rootView: contentView)
+        if let modelContainer {
+            window.contentView = NSHostingView(rootView: contentView.modelContainer(modelContainer))
+        } else {
+            window.contentView = NSHostingView(rootView: contentView)
+        }
         
         // Update window title when queue changes
         queueManager?.$items.sink { [weak window] items in
@@ -127,13 +185,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if window.isVisible {
             // Hide window and pause monitoring
             window.orderOut(nil)
-            // NOTE(codex): Keep monitoring active so clipboard text is captured while hidden (CQ-001).
-            print("🪟 Window hidden - monitoring continues")
+            if Preferences.shared.pauseMonitoringWhenHidden {
+                clipboardMonitor?.stopMonitoring()
+                keyboardShortcutManager?.setMonitoringEnabled(false)
+                print("🪟 Window hidden - monitoring paused")
+            } else {
+                print("🪟 Window hidden - monitoring continues")
+            }
         } else {
             // Show window and resume monitoring
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: false)
-            clipboardMonitor?.startMonitoring()
+            if Preferences.shared.pauseMonitoringWhenHidden {
+                clipboardMonitor?.startMonitoring()
+                keyboardShortcutManager?.setMonitoringEnabled(true)
+            }
             print("🪟 Window shown - monitoring active")
         }
     }
@@ -157,8 +223,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
         window.isReleasedWhenClosed = false
         
-        let contentView = PreferencesView()
-        window.contentView = NSHostingView(rootView: contentView)
+        let contentView = PreferencesView(categoryStore: categoryStore)
+        if let modelContainer {
+            window.contentView = NSHostingView(rootView: contentView.modelContainer(modelContainer))
+        } else {
+            window.contentView = NSHostingView(rootView: contentView)
+        }
         
         preferencesWindow = window
         window.makeKeyAndOrderFront(nil)

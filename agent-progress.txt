@@ -22,3 +22,80 @@ Session log:
   - Tests run: none
   - Result: LSUIElement disabled; Dock icon configured via SF symbol.
   - Next steps: manually verify Dock icon, then proceed to history/persistence feature.
+
+- 2026-01-01T11:18:58Z | branch: main
+  - Focus: Implement history feature foundation with SwiftData.
+  - Files touched: Sources/Models/ClipboardItem.swift, Sources/Services/QueueManager.swift, Sources/Views/QueueView.swift, Sources/ClipQueue/AppDelegate.swift, ClipQueue.xcodeproj/project.pbxproj, README.md, .beads/issues.jsonl, handoff.md
+  - Tests run: none (per request, defer build/run until all features implemented).
+  - Result: HistoryStore with paging added; History view toggle added; deployment target bumped to macOS 14.0.
+  - Next steps: Manual history verification, then close CQ-006; proceed to search bar or categories.
+
+- 2026-01-01T11:33:53Z | branch: main
+  - Focus: Build verification after history changes.
+  - Files touched: Sources/Services/QueueManager.swift, handoff.md
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed after fix.
+  - Result: Build succeeds; manual run still pending.
+  - Next steps: Continue features (search/categories/pinning) and defer run until all complete.
+
+- 2026-01-01T11:44:51Z | branch: main
+  - Focus: Add selectable/copyable history items and context menus for queue/history.
+  - Files touched: Sources/Views/QueueView.swift, Sources/Services/QueueManager.swift, .beads/issues.jsonl, handoff.md
+  - Tests run: none (requested to run later).
+  - Result: Context menus added; history items selectable and text-selectable; clear/remove actions wired.
+  - Next steps: Build/run, then verify queue/history selection/copy behaviors.
+
+- 2026-01-01T11:45:31Z | branch: main
+  - Focus: Build and launch after context menu changes.
+  - Files touched: handoff.md, agent-progress.txt
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed; launch_mac_app — success.
+  - Result: App launched; manual verification of queue/history context menus pending.
+  - Next steps: Verify selection/copy/context menu behaviors and update feature status.
+
+- 2026-01-01T11:46:47Z | branch: main
+  - Focus: Improve shortcuts layout spacing and button styling in Preferences.
+  - Files touched: Sources/Views/PreferencesView.swift, handoff.md
+  - Tests run: none
+  - Result: Replaced Form with Grid layout; shortcut buttons now bordered rounded rectangles.
+  - Next steps: Build/run and visually confirm layout matches macOS native look.
+
+- 2026-01-01T11:57:18Z | branch: main
+  - Focus: Add search bar with live filtering for queue/history.
+  - Files touched: Sources/Views/QueueView.swift, Sources/Services/QueueManager.swift, .beads/issues.jsonl, handoff.md
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
+  - Result: Search field filters queue in-memory and history via debounced SwiftData fetch.
+  - Next steps: Manual verification of search behavior; proceed to source app icons.
+
+- 2026-01-01T12:07:41Z | branch: main
+  - Focus: Add source app icons for queue/history items.
+  - Files touched: Sources/Models/ClipboardItem.swift, Sources/Services/ClipboardMonitor.swift, Sources/Services/QueueManager.swift, Sources/Views/QueueView.swift, Sources/Views/SourceAppIconView.swift, Sources/ClipQueue/AppDelegate.swift, ClipQueue.xcodeproj/project.pbxproj, .beads/issues.jsonl, handoff.md
+  - Tests run: none (build scheduled after this iteration per request).
+  - Result: Captured frontmost app info and displayed icons with caching.
+  - Next steps: Build and verify icons appear for copied items; proceed to categories/pinning.
+
+- 2026-01-01T12:08:39Z | branch: main
+  - Focus: Build verification after source app icon changes.
+  - Files touched: handoff.md, agent-progress.txt
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
+  - Result: Build succeeds with new SourceAppIconView.
+  - Next steps: Manual verification of app icons; implement categories/pinning.
+
+- 2026-01-01T12:22:47Z | branch: main
+  - Focus: Implement categories and pinning features.
+  - Files touched: Sources/Models/ClipboardItem.swift, Sources/Models/ClipboardCategory.swift, Sources/Services/QueueManager.swift, Sources/Services/CategoryStore.swift, Sources/Views/QueueView.swift, Sources/Views/PreferencesView.swift, Sources/Views/Color+Hex.swift, Sources/ClipQueue/AppDelegate.swift, ClipQueue.xcodeproj/project.pbxproj, .beads/issues.jsonl, handoff.md
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
+  - Result: Categories with color badges and preferences tab added; pin/unpin with pinned section implemented.
+  - Next steps: Manual verification of categories and pinning, then proceed to Liquid Glass UI and settings customization.
+
+- 2026-01-01T12:24:34Z | branch: main
+  - Focus: Build verification after pinned item icon update.
+  - Files touched: Sources/Views/QueueView.swift, handoff.md, agent-progress.txt
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
+  - Result: Build succeeds with pinned row app icon.
+  - Next steps: Manual verification and continue Liquid Glass + settings.
+
+- 2026-01-01T12:50:22Z | branch: main
+  - Focus: Apply Liquid Glass styling updates and modernize empty states.
+  - Files touched: Sources/Views/GlassStyle.swift, Sources/Views/QueueView.swift, Sources/Views/PreferencesView.swift, ClipQueue.xcodeproj/project.pbxproj, .beads/issues.jsonl, handoff.md, agent-progress.txt
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed; launch_mac_app — success.
+  - Result: Glass header/footer/search field styling added; row styling and shortcut keycaps refreshed; build and launch succeed.
+  - Next steps: Manual visual verification, update feature_list.json passes, continue responsive layout and performance work.

@@ -28,3 +28,10 @@ build/
 
 # Thumbnails
 ._*
+
+# Logs and session data
+logs/
+.claude/data/sessions/
+
+# Beads database (tracked via JSONL)
+.beads/beads.db
