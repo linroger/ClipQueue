@@ -1,0 +1,17 @@
+Project overview:
+ClipQueue is a macOS menu bar clipboard queue app built with SwiftUI and AppKit. It monitors the pasteboard, queues copied text, and provides a floating window for FIFO paste operations.
+
+Session log:
+- 2026-01-01T10:49:27Z | branch: n/a
+  - Focus: Initialize agent harness and start investigating clipboard display bug.
+  - Files touched: handoff.md, feature_list.json, agent-progress.txt (created)
+  - Tests run: none
+  - Result: harness initialized; no functional changes yet.
+  - Next steps: create beads issues, diagnose and fix clipboard display bug, then update feature_list.json and handoff.md.
+
+- 2026-01-01T10:52:35Z | branch: n/a
+  - Focus: Fix clipboard monitoring reliability to address missing text in queue view.
+  - Files touched: Sources/Services/ClipboardMonitor.swift, Sources/ClipQueue/AppDelegate.swift, handoff.md
+  - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
+  - Result: Monitoring now stays active while window is hidden; timer runs in common modes; addItem dispatched on main.
+  - Next steps: Run manual copy/verify, then close CQ-001 and update feature_list.json.

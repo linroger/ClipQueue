@@ -1,0 +1,156 @@
+[
+  {
+    "id": "feature_fix_clipboard_display",
+    "category": "bugfix",
+    "description": "Clipboard text captured from the pasteboard appears in the queue list and remains visible.",
+    "steps": [
+      "Copy text in another app",
+      "Open the ClipQueue window",
+      "Verify the new item appears with a preview and timestamp",
+      "Verify the item count increments",
+      "Restart the app and confirm persistence"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_liquid_glass_ui",
+    "category": "ui",
+    "description": "Update the UI to macOS 26 Tahoe Liquid Glass aesthetics and current HIG guidance.",
+    "steps": [
+      "Open the queue window",
+      "Confirm glass materials and updated styling are applied",
+      "Verify spacing and typography align with system defaults",
+      "Check light and dark appearances"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_dock_icon",
+    "category": "ui",
+    "description": "Show the app in the Dock with a proper app icon.",
+    "steps": [
+      "Launch the app",
+      "Verify the Dock icon appears",
+      "Confirm the icon is the app's asset"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_search_bar",
+    "category": "functional",
+    "description": "Provide a search bar with real-time filtering of clipboard items.",
+    "steps": [
+      "Open the queue window",
+      "Enter search text",
+      "Verify list filters live with matching results",
+      "Clear search and confirm list resets"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_history",
+    "category": "functional",
+    "description": "Maintain a history view of copied items separate from the queue.",
+    "steps": [
+      "Copy multiple items",
+      "Open history view",
+      "Verify all copied items appear in history",
+      "Restart the app and confirm history persists"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_categories",
+    "category": "functional",
+    "description": "Allow users to create categories and assign clipboard items to them with color-coding.",
+    "steps": [
+      "Open category management",
+      "Create a new category with a color",
+      "Assign a clipboard item to the category",
+      "Verify the item shows the category color"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_pinning",
+    "category": "functional",
+    "description": "Allow users to pin important items for persistence and quick access.",
+    "steps": [
+      "Pin a clipboard item",
+      "Verify it appears in a pinned section",
+      "Restart the app and confirm the item remains pinned"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_source_app_icons",
+    "category": "ui",
+    "description": "Show the source application icon for each clipboard item.",
+    "steps": [
+      "Copy text from a known app",
+      "Open the queue window",
+      "Verify the item shows the app icon or a fallback"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_context_menus",
+    "category": "ui",
+    "description": "Add context menus for items and list background actions.",
+    "steps": [
+      "Right-click an item",
+      "Verify action menu appears",
+      "Right-click the list background",
+      "Verify list-level actions appear"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_settings_customization",
+    "category": "settings",
+    "description": "Expand settings with customization options (monitoring, appearance, animation speed, etc.).",
+    "steps": [
+      "Open Preferences",
+      "Adjust new settings",
+      "Restart app and confirm settings persist",
+      "Verify settings affect behavior"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_animation_controls",
+    "category": "ui",
+    "description": "Provide smooth animations with a user-adjustable speed control.",
+    "steps": [
+      "Change animation speed setting",
+      "Trigger list insertion or reorder",
+      "Verify animation speed changes",
+      "Confirm animations remain smooth"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_responsive_layout",
+    "category": "ui",
+    "description": "Ensure layout works across small and large window sizes.",
+    "steps": [
+      "Resize the window to small width",
+      "Verify layout adapts without clipping",
+      "Resize to large width",
+      "Verify layout uses available space"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feature_performance_scale",
+    "category": "performance",
+    "description": "Optimize data storage and rendering to handle millions of items efficiently.",
+    "steps": [
+      "Load a large dataset",
+      "Scroll and search",
+      "Verify UI remains responsive",
+      "Check memory usage does not spike"
+    ],
+    "passes": false
+  }
+]
