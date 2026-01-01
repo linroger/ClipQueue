@@ -1,0 +1,7 @@
+{
+  "session_id": "7db7d5f0-5949-4579-9a08-f10c0676c9ac",
+  "prompts": [
+    "\n> /plugin marketplace add thedotmack/claude-mem\n\n> /plugin install claude-mem",
+    "run them   /plugin marketplace add thedotmack/claude-mem\n\n  # Then install it\n  /plugin install claude-mem"
+  ]
+}

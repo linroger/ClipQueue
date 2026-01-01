@@ -1,0 +1,62 @@
+#!/bin/bash
+# Helper script to grant accessibility permissions to the Xcode build
+
+echo "🔐 Accessibility Permission Helper for Xcode Development"
+echo "=========================================================="
+echo ""
+
+# Find the DerivedData build
+DERIVED_APP=$(find ~/Library/Developer/Xcode/DerivedData/ClipQueue-*/Build/Products/Debug -name "ClipQueue.app" -type d 2>/dev/null | head -1)
+
+if [ -z "$DERIVED_APP" ]; then
+    echo "❌ No Xcode build found!"
+    echo ""
+    echo "You need to build first:"
+    echo "  1. Open ClipQueue.xcodeproj in Xcode"
+    echo "  2. Press Cmd+B to build"
+    echo "  3. Run this script again"
+    exit 1
+fi
+
+echo "📍 Found Xcode build at:"
+echo "   $DERIVED_APP"
+echo ""
+echo "📅 Last built: $(stat -f '%Sm' -t '%Y-%m-%d %H:%M:%S' "$DERIVED_APP")"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📋 COPY THIS PATH:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "$DERIVED_APP"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "🔧 STEPS TO GRANT PERMISSIONS:"
+echo ""
+echo "1. Copy the path above (triple-click to select all)"
+echo ""
+echo "2. Open System Settings → Privacy & Security → Accessibility"
+echo ""
+echo "3. Click the 🔒 lock icon to unlock (enter password)"
+echo ""
+echo "4. REMOVE all old ClipQueue entries (click each, then click -)"
+echo ""
+echo "5. Click the + button"
+echo ""
+echo "6. Press Cmd+Shift+G (Go to folder)"
+echo ""
+echo "7. Paste the path you copied"
+echo ""
+echo "8. Click 'Go', then 'Open'"
+echo ""
+echo "9. Toggle the switch ON (should be blue)"
+echo ""
+echo "10. Close System Settings"
+echo ""
+echo "11. In Xcode, press Cmd+R to run ClipQueue"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+read -p "Press Enter when you've completed the steps above..."
+echo ""
+echo "✅ Now run ClipQueue from Xcode (Cmd+R) and test!"

@@ -1,0 +1,10 @@
+[
+  {
+    "session_id": "f6b29baa-f693-4a5b-9d09-d31fbf984fa7",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/f6b29baa-f693-4a5b-9d09-d31fbf984fa7.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "Stop",
+    "stop_hook_active": false
+  }
+]

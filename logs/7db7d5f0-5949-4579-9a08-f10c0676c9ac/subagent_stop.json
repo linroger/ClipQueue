@@ -1,0 +1,42 @@
+[
+  {
+    "session_id": "7db7d5f0-5949-4579-9a08-f10c0676c9ac",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7db7d5f0-5949-4579-9a08-f10c0676c9ac.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "default",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "ae65435",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-ae65435.jsonl"
+  },
+  {
+    "session_id": "7db7d5f0-5949-4579-9a08-f10c0676c9ac",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7db7d5f0-5949-4579-9a08-f10c0676c9ac.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "a9097ae",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-a9097ae.jsonl"
+  },
+  {
+    "session_id": "7db7d5f0-5949-4579-9a08-f10c0676c9ac",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7db7d5f0-5949-4579-9a08-f10c0676c9ac.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "default",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "a5b2dc6",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-a5b2dc6.jsonl"
+  },
+  {
+    "session_id": "7db7d5f0-5949-4579-9a08-f10c0676c9ac",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7db7d5f0-5949-4579-9a08-f10c0676c9ac.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "a55ad8f",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-a55ad8f.jsonl"
+  }
+]

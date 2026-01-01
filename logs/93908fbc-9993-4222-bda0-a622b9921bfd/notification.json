@@ -1,0 +1,10 @@
+[
+  {
+    "session_id": "93908fbc-9993-4222-bda0-a622b9921bfd",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/93908fbc-9993-4222-bda0-a622b9921bfd.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "Notification",
+    "message": "Claude is waiting for your input",
+    "notification_type": "idle_prompt"
+  }
+]

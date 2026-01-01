@@ -1,0 +1,22 @@
+[
+  {
+    "session_id": "93908fbc-9993-4222-bda0-a622b9921bfd",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/93908fbc-9993-4222-bda0-a622b9921bfd.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "default",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "a5d282b",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-a5d282b.jsonl"
+  },
+  {
+    "session_id": "93908fbc-9993-4222-bda0-a622b9921bfd",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/93908fbc-9993-4222-bda0-a622b9921bfd.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "permission_mode": "default",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "a97ae36",
+    "agent_transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/agent-a97ae36.jsonl"
+  }
+]
