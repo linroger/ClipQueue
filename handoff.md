@@ -1,6 +1,6 @@
 # Handoff.md
 
-**Last Updated (UTC):** 2026-01-01T10:52:35Z
+**Last Updated (UTC):** 2026-01-01T11:07:47Z
 **Status:** In Progress
 **Current Focus:** Establish agent harness and address clipboard text display bug.
 
@@ -44,12 +44,14 @@
 - [x] Create agent harness files and beads issues — **done**; evidence: `handoff.md`, `feature_list.json`, `agent-progress.txt`, `init.sh`, `.beads/issues.jsonl`.
 - [x] Diagnose clipboard text display issue — **done**; evidence: AppDelegate hides window and previously stopped monitoring.
 - [ ] Implement fix and verify UI shows text — in progress; code updated, manual verification pending.
+- [ ] Verify Dock icon appears — in progress; code updated, manual verification pending.
 - [ ] Update feature_list.json pass state — planned evidence: JSON diff.
 
 ## 5) Findings, Decisions, Assumptions
 - **Finding:** `toggleWindow()` stopped clipboard monitoring when the window was hidden, which can prevent items from ever appearing if the window stays closed.
 - **Decision:** Keep monitoring active when the window is hidden and make `startMonitoring()` idempotent to avoid duplicate timers.
 - **Decision:** Schedule the clipboard timer in common run loop modes to improve reliability.
+- **Decision:** Enable Dock icon by setting `LSUIElement` to false and configuring the app icon at launch.
 - **Assumption:** The above changes fix the missing text issue; needs manual copy test to confirm.
 
 ## 6) Issues, Mistakes, Recoveries
@@ -72,3 +74,4 @@
 - 2026-01-01T10:49:27Z: Logged harness file creation and beads issues initialization.
 - 2026-01-01T10:52:35Z: Recorded clipboard monitoring fixes and build verification.
 - 2026-01-01T10:52:35Z: Initialized git repo and created initial commits for harness and baseline project.
+- 2026-01-01T11:07:47Z: Documented Dock icon changes and updated progress ledger.

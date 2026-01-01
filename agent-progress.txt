@@ -15,3 +15,10 @@ Session log:
   - Tests run: Xcode Build MCP build_macos (ClipQueue) — passed.
   - Result: Monitoring now stays active while window is hidden; timer runs in common modes; addItem dispatched on main.
   - Next steps: Run manual copy/verify, then close CQ-001 and update feature_list.json.
+
+- 2026-01-01T11:07:47Z | branch: main
+  - Focus: Enable Dock icon (CQ-003).
+  - Files touched: Info.plist, Sources/ClipQueue/AppDelegate.swift, .beads/issues.jsonl, handoff.md
+  - Tests run: none
+  - Result: LSUIElement disabled; Dock icon configured via SF symbol.
+  - Next steps: manually verify Dock icon, then proceed to history/persistence feature.

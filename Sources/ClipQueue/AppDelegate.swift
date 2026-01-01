@@ -10,6 +10,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var keyboardShortcutManager: KeyboardShortcutManager?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.regular)
+        configureDockIcon()
+
         // Create the queue manager
         queueManager = QueueManager()
         
@@ -44,6 +47,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         createFloatingWindow()
         
         print("✅ ClipQueue started")
+    }
+
+    private func configureDockIcon() {
+        let config = NSImage.SymbolConfiguration(pointSize: 64, weight: .regular)
+        if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
+            let icon = image.withSymbolConfiguration(config) ?? image
+            icon.isTemplate = false
+            NSApplication.shared.applicationIconImage = icon
+        }
     }
     
     private func createFloatingWindow() {
