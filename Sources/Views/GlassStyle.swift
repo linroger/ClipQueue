@@ -177,6 +177,7 @@ enum GlassBarEdge {
 
 struct GlassBar<Content: View>: View {
     @ObservedObject var preferences = Preferences.shared
+    @Environment(\.colorScheme) private var colorScheme
     let edge: GlassBarEdge
     let content: Content
 
@@ -185,17 +186,28 @@ struct GlassBar<Content: View>: View {
         self.content = content()
     }
 
+    private var barMaterial: Material {
+        guard preferences.useVibrancy else { return .bar }
+        // Use thinner material in light mode to reduce white appearance
+        if colorScheme == .light {
+            switch preferences.materialThickness {
+            case .ultraThin, .thin: return .ultraThinMaterial
+            case .regular: return .thinMaterial
+            case .thick: return .regularMaterial
+            }
+        }
+        return LiquidGlassStyle.material(
+            vibrancy: preferences.useVibrancy,
+            thickness: preferences.materialThickness
+        )
+    }
+
     var body: some View {
         content
             .padding(.horizontal, 10)
             .padding(.vertical, 10)
             .frame(minHeight: 40)
-            .background(
-                LiquidGlassStyle.material(
-                    vibrancy: preferences.useVibrancy,
-                    thickness: preferences.materialThickness
-                )
-            )
+            .background(barMaterial.opacity(preferences.windowTranslucency))
             .overlay(alignment: edge == .top ? .bottom : .top) {
                 Rectangle()
                     .fill(Color(NSColor.separatorColor).opacity(preferences.showBorders ? 0.5 : 0.25))

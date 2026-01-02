@@ -63,6 +63,22 @@ enum RowDensity: String, CaseIterable, Identifiable {
         case .compact: return 6
         }
     }
+
+    var contentSpacing: CGFloat {
+        switch self {
+        case .comfortable: return 4
+        case .standard: return 3
+        case .compact: return 2
+        }
+    }
+
+    var rowSpacing: CGFloat {
+        switch self {
+        case .comfortable: return 10
+        case .standard: return 8
+        case .compact: return 6
+        }
+    }
 }
 
 enum CornerStyle: String, CaseIterable, Identifiable {
@@ -231,6 +247,98 @@ enum TextSize: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Sound Effects
+
+enum CopySoundEffect: String, CaseIterable, Identifiable {
+    case none = "none"
+    case pop = "pop"
+    case tink = "tink"
+    case glass = "glass"
+    case morse = "morse"
+    case purr = "purr"
+    case submarine = "submarine"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .none: return "None"
+        case .pop: return "Pop"
+        case .tink: return "Tink"
+        case .glass: return "Glass"
+        case .morse: return "Morse"
+        case .purr: return "Purr"
+        case .submarine: return "Submarine"
+        }
+    }
+
+    var systemSoundName: String? {
+        switch self {
+        case .none: return nil
+        case .pop: return "Pop"
+        case .tink: return "Tink"
+        case .glass: return "Glass"
+        case .morse: return "Morse"
+        case .purr: return "Purr"
+        case .submarine: return "Submarine"
+        }
+    }
+}
+
+enum PasteSoundEffect: String, CaseIterable, Identifiable {
+    case none = "none"
+    case pop = "pop"
+    case tink = "tink"
+    case blow = "blow"
+    case bottle = "bottle"
+    case frog = "frog"
+    case funk = "funk"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .none: return "None"
+        case .pop: return "Pop"
+        case .tink: return "Tink"
+        case .blow: return "Blow"
+        case .bottle: return "Bottle"
+        case .frog: return "Frog"
+        case .funk: return "Funk"
+        }
+    }
+
+    var systemSoundName: String? {
+        switch self {
+        case .none: return nil
+        case .pop: return "Pop"
+        case .tink: return "Tink"
+        case .blow: return "Blow"
+        case .bottle: return "Bottle"
+        case .frog: return "Frog"
+        case .funk: return "Funk"
+        }
+    }
+}
+
+// MARK: - Menu Bar Icon
+
+enum MenuBarIconStyle: String, CaseIterable, Identifiable {
+    case `default` = "default"
+    case sfSymbol = "sfSymbol"
+    case custom = "custom"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .default: return "Default"
+        case .sfSymbol: return "SF Symbol"
+        case .custom: return "Custom Image"
+        }
+    }
+}
+
 class Preferences: ObservableObject {
     static let shared = Preferences()
     
@@ -263,6 +371,12 @@ class Preferences: ObservableObject {
     @Published var showAppIcons: Bool {
         didSet {
             UserDefaults.standard.set(showAppIcons, forKey: "showAppIcons")
+        }
+    }
+
+    @Published var sourceAppIconSize: Double {
+        didSet {
+            UserDefaults.standard.set(sourceAppIconSize, forKey: "sourceAppIconSize")
         }
     }
 
@@ -510,7 +624,72 @@ class Preferences: ObservableObject {
             UserDefaults.standard.set(clearAllShortcut, forKey: "clearAllShortcut")
         }
     }
-    
+
+    // Sound effects
+    @Published var copySoundEffect: CopySoundEffect {
+        didSet {
+            UserDefaults.standard.set(copySoundEffect.rawValue, forKey: "copySoundEffect")
+        }
+    }
+
+    @Published var pasteSoundEffect: PasteSoundEffect {
+        didSet {
+            UserDefaults.standard.set(pasteSoundEffect.rawValue, forKey: "pasteSoundEffect")
+        }
+    }
+
+    // Menu bar icon customization
+    @Published var menuBarIconStyle: MenuBarIconStyle {
+        didSet {
+            UserDefaults.standard.set(menuBarIconStyle.rawValue, forKey: "menuBarIconStyle")
+        }
+    }
+
+    @Published var customMenuBarSymbol: String {
+        didSet {
+            UserDefaults.standard.set(customMenuBarSymbol, forKey: "customMenuBarSymbol")
+        }
+    }
+
+    @Published var customMenuBarImagePath: String {
+        didSet {
+            UserDefaults.standard.set(customMenuBarImagePath, forKey: "customMenuBarImagePath")
+        }
+    }
+
+    // Custom accent color (hex)
+    @Published var customAccentColorHex: String {
+        didSet {
+            UserDefaults.standard.set(customAccentColorHex, forKey: "customAccentColorHex")
+        }
+    }
+
+    @Published var useCustomAccentColor: Bool {
+        didSet {
+            UserDefaults.standard.set(useCustomAccentColor, forKey: "useCustomAccentColor")
+        }
+    }
+
+    // Dock badge
+    @Published var showDockBadge: Bool {
+        didSet {
+            UserDefaults.standard.set(showDockBadge, forKey: "showDockBadge")
+        }
+    }
+
+    // Mini mode (minimize to icon)
+    @Published var miniModeEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(miniModeEnabled, forKey: "miniModeEnabled")
+        }
+    }
+
+    @Published var miniModeShortcut: String {
+        didSet {
+            UserDefaults.standard.set(miniModeShortcut, forKey: "miniModeShortcut")
+        }
+    }
+
     private init() {
         // Load saved preferences or use defaults
         let savedKeepOnTop = UserDefaults.standard.object(forKey: "keepWindowOnTop")
@@ -526,6 +705,9 @@ class Preferences: ObservableObject {
 
         let savedIcons = UserDefaults.standard.object(forKey: "showAppIcons")
         self.showAppIcons = savedIcons == nil ? true : UserDefaults.standard.bool(forKey: "showAppIcons")
+
+        let savedIconSize = UserDefaults.standard.object(forKey: "sourceAppIconSize")
+        self.sourceAppIconSize = savedIconSize == nil ? 16.0 : UserDefaults.standard.double(forKey: "sourceAppIconSize")
 
         self.pauseMonitoringWhenHidden = UserDefaults.standard.bool(forKey: "pauseMonitoringWhenHidden")
 
@@ -625,6 +807,32 @@ class Preferences: ObservableObject {
         self.pasteNextShortcut = UserDefaults.standard.string(forKey: "pasteNextShortcut") ?? "⌃W"
         self.pasteAllShortcut = UserDefaults.standard.string(forKey: "pasteAllShortcut") ?? "⌃E"
         self.clearAllShortcut = UserDefaults.standard.string(forKey: "clearAllShortcut") ?? "⌃X"
+
+        // Sound effects
+        let savedCopySound = UserDefaults.standard.string(forKey: "copySoundEffect") ?? "tink"
+        self.copySoundEffect = CopySoundEffect(rawValue: savedCopySound) ?? .tink
+
+        let savedPasteSound = UserDefaults.standard.string(forKey: "pasteSoundEffect") ?? "pop"
+        self.pasteSoundEffect = PasteSoundEffect(rawValue: savedPasteSound) ?? .pop
+
+        // Menu bar icon customization
+        let savedMenuBarStyle = UserDefaults.standard.string(forKey: "menuBarIconStyle") ?? "default"
+        self.menuBarIconStyle = MenuBarIconStyle(rawValue: savedMenuBarStyle) ?? .default
+
+        self.customMenuBarSymbol = UserDefaults.standard.string(forKey: "customMenuBarSymbol") ?? "list.clipboard"
+        self.customMenuBarImagePath = UserDefaults.standard.string(forKey: "customMenuBarImagePath") ?? ""
+
+        // Custom accent color
+        self.customAccentColorHex = UserDefaults.standard.string(forKey: "customAccentColorHex") ?? "#007AFF"
+        self.useCustomAccentColor = UserDefaults.standard.bool(forKey: "useCustomAccentColor")
+
+        // Dock badge
+        let savedDockBadge = UserDefaults.standard.object(forKey: "showDockBadge")
+        self.showDockBadge = savedDockBadge == nil ? true : UserDefaults.standard.bool(forKey: "showDockBadge")
+
+        // Mini mode
+        self.miniModeEnabled = UserDefaults.standard.bool(forKey: "miniModeEnabled")
+        self.miniModeShortcut = UserDefaults.standard.string(forKey: "miniModeShortcut") ?? "⌃⌥M"
     }
     
     func resetToDefaults() {
@@ -675,5 +883,20 @@ class Preferences: ObservableObject {
         pasteNextShortcut = "⌃W"
         pasteAllShortcut = "⌃E"
         clearAllShortcut = "⌃X"
+        // Sound effects
+        copySoundEffect = .tink
+        pasteSoundEffect = .pop
+        // Menu bar icon
+        menuBarIconStyle = .default
+        customMenuBarSymbol = "list.clipboard"
+        customMenuBarImagePath = ""
+        // Custom accent color
+        customAccentColorHex = "#007AFF"
+        useCustomAccentColor = false
+        // Dock badge
+        showDockBadge = true
+        // Mini mode
+        miniModeEnabled = false
+        miniModeShortcut = "⌃⌥M"
     }
 }

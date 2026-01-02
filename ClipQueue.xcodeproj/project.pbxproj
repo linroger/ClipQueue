@@ -21,6 +21,9 @@
 		A1000012 /* CategoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* CategoryStore.swift */; };
 		A1000013 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000014 /* Color+Hex.swift */; };
 		A1000014 /* GlassStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015 /* GlassStyle.swift */; };
+		A1000015 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000016 /* SoundManager.swift */; };
+		A1000017 /* SFSymbolPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000017 /* SFSymbolPickerView.swift */; };
+		A1000018 /* SFSymbolDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000018 /* SFSymbolDatabase.swift */; };
 		D1E05EB02EF76744000F65D3 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E05EAF2EF76744000F65D3 /* LaunchAtLoginManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +43,9 @@
 		A2000013 /* CategoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryStore.swift; sourceTree = "<group>"; };
 		A2000014 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		A2000015 /* GlassStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyle.swift; sourceTree = "<group>"; };
+		A2000016 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
+		A2000017 /* SFSymbolPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSymbolPickerView.swift; sourceTree = "<group>"; };
+		A2000018 /* SFSymbolDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSymbolDatabase.swift; sourceTree = "<group>"; };
 		A3000001 /* ClipQueue.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipQueue.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D1E05EAF2EF76744000F65D3 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -107,6 +113,7 @@
 				A2000005 /* QueueManager.swift */,
 				A2000006 /* KeyboardShortcutManager.swift */,
 				A2000013 /* CategoryStore.swift */,
+				A2000016 /* SoundManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -119,6 +126,8 @@
 				A2000011 /* SourceAppIconView.swift */,
 				A2000014 /* Color+Hex.swift */,
 				A2000015 /* GlassStyle.swift */,
+				A2000017 /* SFSymbolPickerView.swift */,
+				A2000018 /* SFSymbolDatabase.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +202,9 @@
 				A1000012 /* CategoryStore.swift in Sources */,
 				A1000013 /* Color+Hex.swift in Sources */,
 				A1000014 /* GlassStyle.swift in Sources */,
+				A1000015 /* SoundManager.swift in Sources */,
+				A1000017 /* SFSymbolPickerView.swift in Sources */,
+				A1000018 /* SFSymbolDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

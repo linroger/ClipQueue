@@ -6,6 +6,8 @@ struct QueueView: View {
     let historyStore: HistoryStore?
     let categoryStore: CategoryStore?
     var onOpenPreferences: (() -> Void)?
+    /// Callback to paste content to the previous app
+    var onPasteToPreviousApp: ((String, Bool, ClipboardItem?) -> Void)?
     @State private var selectedSection: QueueSection = .queue
     @State private var selectedQueueID: UUID?
     @State private var searchText = ""
@@ -96,12 +98,20 @@ struct QueueView: View {
                                 queueManager: queueManager
                             )
                             .contentShape(Rectangle())
+                            .onTapGesture(count: 2) {
+                                // Double-click action based on preference
+                                handleDoubleClick(item: item)
+                            }
                             .onTapGesture {
+                                // Single-click: select item only
                                 selectedQueueID = item.id
                             }
                             .contextMenu {
                                 Button("Copy") {
                                     copyToPasteboard(item.content)
+                                }
+                                Button("Paste to Previous App") {
+                                    handlePaste(item: item)
                                 }
                                 Button("Copy & Remove") {
                                     copyToPasteboard(item.content)
@@ -212,6 +222,24 @@ struct QueueView: View {
         preferences.historyEnabled ? QueueSection.allCases : [.queue]
     }
 
+    // MARK: - Click Actions
+
+    private func handleDoubleClick(item: ClipboardItem) {
+        switch preferences.doubleClickAction {
+        case .copy:
+            copyToPasteboard(item.content)
+        case .paste:
+            handlePaste(item: item)
+        case .none:
+            break
+        }
+    }
+
+    private func handlePaste(item: ClipboardItem) {
+        // Call the callback to paste to the previous app
+        onPasteToPreviousApp?(item.content, false, item)
+    }
+
     @ViewBuilder
     private func categoryMenu(for item: ClipboardItem) -> some View {
         if let categoryStore, !categoryStore.categories.isEmpty {
@@ -315,11 +343,10 @@ struct QueueItemRow: View {
     @State private var isHovering = false
     @State private var isDragging = false
 
-    private var rowPadding: CGFloat { compactMode ? 6 : 10 }
-    private var contentSpacing: CGFloat { compactMode ? 2 : 4 }
+    private var density: RowDensity { preferences.rowDensity }
 
     var body: some View {
-        HStack(alignment: .top, spacing: compactMode ? 6 : 8) {
+        HStack(alignment: .top, spacing: density.rowSpacing) {
             // Drag handle indicator
             Image(systemName: "line.3.horizontal")
                 .font(.system(size: compactMode ? 8 : 10))
@@ -329,12 +356,12 @@ struct QueueItemRow: View {
                 SourceAppIconView(
                     bundleIdentifier: item.sourceAppBundleIdentifier,
                     appName: item.sourceAppName,
-                    size: compactMode ? 14 : 16
+                    size: compactMode ? preferences.sourceAppIconSize * 0.875 : preferences.sourceAppIconSize
                 )
                 .help(item.sourceAppName ?? "Unknown App")
             }
             // Content preview
-            VStack(alignment: .leading, spacing: contentSpacing) {
+            VStack(alignment: .leading, spacing: density.contentSpacing) {
                 Text(item.shortPreview)
                     .lineLimit(previewLines)
                     .font(compactMode ? .caption : .callout)
@@ -349,6 +376,12 @@ struct QueueItemRow: View {
                     Text(item.timeAgo)
                         .font(compactMode ? .system(size: 9) : .caption2)
                         .foregroundStyle(.tertiary)
+
+                    if preferences.showCharacterCount {
+                        Text("• \(item.content.count) chars")
+                            .font(compactMode ? .system(size: 9) : .caption2)
+                            .foregroundStyle(.tertiary)
+                    }
 
                     if let category {
                         CategoryBadge(category: category, compact: compactMode)
@@ -387,7 +420,8 @@ struct QueueItemRow: View {
                 }
             }
         }
-        .padding(rowPadding)
+        .padding(.horizontal, density.horizontalPadding)
+        .padding(.vertical, density.verticalPadding)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(rowFill)
@@ -562,21 +596,20 @@ struct HistoryItemRow: View {
     @ObservedObject private var preferences = Preferences.shared
     @State private var isHovering = false
 
-    private var rowPadding: CGFloat { compactMode ? 6 : 10 }
-    private var contentSpacing: CGFloat { compactMode ? 2 : 4 }
+    private var density: RowDensity { preferences.rowDensity }
 
     var body: some View {
-        HStack(alignment: .top, spacing: compactMode ? 6 : 8) {
+        HStack(alignment: .top, spacing: density.rowSpacing) {
             if showAppIcon {
                 SourceAppIconView(
                     bundleIdentifier: entry.sourceAppBundleIdentifier,
                     appName: entry.sourceAppName,
-                    size: compactMode ? 14 : 16
+                    size: compactMode ? preferences.sourceAppIconSize * 0.875 : preferences.sourceAppIconSize
                 )
                 .help(entry.sourceAppName ?? "Unknown App")
             }
 
-            VStack(alignment: .leading, spacing: contentSpacing) {
+            VStack(alignment: .leading, spacing: density.contentSpacing) {
                 Text(entry.shortPreview)
                     .lineLimit(previewLines)
                     .font(compactMode ? .caption : .callout)
@@ -590,6 +623,12 @@ struct HistoryItemRow: View {
                     Text(entry.timeAgo)
                         .font(compactMode ? .system(size: 9) : .caption2)
                         .foregroundStyle(.tertiary)
+
+                    if preferences.showCharacterCount {
+                        Text("• \(entry.content.count) chars")
+                            .font(compactMode ? .system(size: 9) : .caption2)
+                            .foregroundStyle(.tertiary)
+                    }
 
                     if let category {
                         CategoryBadge(category: category, compact: compactMode)
@@ -605,7 +644,8 @@ struct HistoryItemRow: View {
 
             Spacer()
         }
-        .padding(rowPadding)
+        .padding(.horizontal, density.horizontalPadding)
+        .padding(.vertical, density.verticalPadding)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(rowFill)
@@ -666,16 +706,15 @@ struct PinnedItemRow: View {
     let previewLines: Int
     @ObservedObject private var preferences = Preferences.shared
 
-    private var rowPadding: CGFloat { compactMode ? 6 : 10 }
-    private var contentSpacing: CGFloat { compactMode ? 2 : 4 }
+    private var density: RowDensity { preferences.rowDensity }
 
     var body: some View {
-        HStack(alignment: .top, spacing: compactMode ? 6 : 8) {
+        HStack(alignment: .top, spacing: density.rowSpacing) {
             if showAppIcon {
                 SourceAppIconView(
                     bundleIdentifier: entry.sourceAppBundleIdentifier,
                     appName: entry.sourceAppName,
-                    size: compactMode ? 14 : 16
+                    size: compactMode ? preferences.sourceAppIconSize * 0.875 : preferences.sourceAppIconSize
                 )
                 .help(entry.sourceAppName ?? "Unknown App")
             }
@@ -684,7 +723,7 @@ struct PinnedItemRow: View {
                 .font(compactMode ? .system(size: 8) : .caption2)
                 .foregroundColor(.orange)
 
-            VStack(alignment: .leading, spacing: contentSpacing) {
+            VStack(alignment: .leading, spacing: density.contentSpacing) {
                 Text(entry.shortPreview)
                     .lineLimit(previewLines)
                     .font(compactMode ? .caption : .callout)
@@ -707,7 +746,8 @@ struct PinnedItemRow: View {
 
             Spacer()
         }
-        .padding(rowPadding)
+        .padding(.horizontal, density.horizontalPadding)
+        .padding(.vertical, density.verticalPadding)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(rowFill)

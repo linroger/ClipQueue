@@ -124,7 +124,7 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
 final class ClipboardHistoryEntry {
     @Attribute(.unique) var id: UUID
     var content: String
-    @Attribute(.spotlight) var timestamp: Date
+    var timestamp: Date
     var typeRaw: String
     var sourceAppBundleIdentifier: String?
     var sourceAppName: String?

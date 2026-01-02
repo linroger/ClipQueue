@@ -10,6 +10,7 @@ class KeyboardShortcutManager {
     
     weak var queueManager: QueueManager?
     var onToggleWindow: (() -> Void)?
+    var onToggleMiniMode: (() -> Void)?
     
     init(queueManager: QueueManager) {
         self.queueManager = queueManager
@@ -75,16 +76,24 @@ class KeyboardShortcutManager {
             modifiers: UInt32(controlKey),
             id: 5
         )
-        
+
+        // ⌃M - Toggle mini mode
+        registerHotKey(
+            keyCode: UInt32(kVK_ANSI_M),
+            modifiers: UInt32(controlKey),
+            id: 6
+        )
+
         // Install event handler
         installEventHandler()
-        
+
         print("⌨️ Keyboard shortcuts registered")
         print("   ⌃Q - Copy and record")
         print("   ⌃⌥⌘C - Toggle window")
         print("   ⌃W - Paste next")
         print("   ⌃E - Paste all")
         print("   ⌃X - Clear all")
+        print("   ⌃M - Toggle mini mode")
     }
     
     private func registerHotKey(keyCode: UInt32, modifiers: UInt32, id: UInt32) {
@@ -189,7 +198,12 @@ class KeyboardShortcutManager {
             // ⌃X - Clear all
             queueManager?.clearQueue()
             print("⌨️ Cleared queue")
-            
+
+        case 6:
+            // ⌃M - Toggle mini mode
+            onToggleMiniMode?()
+            print("⌨️ Toggle mini mode")
+
         default:
             break
         }

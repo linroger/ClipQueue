@@ -62,12 +62,15 @@ class QueueManager: ObservableObject {
         lastPastedContent = item.content
         
         saveQueue()
-        
+
+        // Play paste sound effect
+        SoundManager.shared.playPasteSound()
+
         print("✅ Pasted: \(item.shortPreview)")
-        
+
         return item
     }
-    
+
     // Paste all items in order (oldest to newest)
     func pasteAll() {
         guard !items.isEmpty else {
@@ -88,7 +91,10 @@ class QueueManager: ObservableObject {
         // Clear the queue
         items.removeAll()
         saveQueue()
-        
+
+        // Play paste sound effect
+        SoundManager.shared.playPasteSound()
+
         print("✅ Pasted all items")
     }
     

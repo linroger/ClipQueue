@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct PreferencesView: View {
     @ObservedObject var preferences = Preferences.shared
@@ -44,13 +45,15 @@ struct PreferencesView: View {
                     .tag(4)
             }
         }
-        .frame(width: 560, height: 520)
+        .frame(width: 620, height: 560)
+        .tabViewStyle(.automatic)
         .tint(accentColor)
     }
 }
 
 struct GeneralPreferencesView: View {
     @ObservedObject var preferences: Preferences
+    @State private var showSymbolPicker = false
 
     var body: some View {
         ScrollView {
@@ -85,6 +88,96 @@ struct GeneralPreferencesView: View {
                     Text("Show the clipboard icon in the menu bar.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    Toggle("Show queue count on Dock icon", isOn: $preferences.showDockBadge)
+
+                    Text("Display a badge with the number of items in the queue.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Divider()
+
+                // MARK: - Menu Bar Icon
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Menu Bar Icon")
+                        .font(.headline)
+
+                    HStack {
+                        Text("Icon style")
+                            .frame(width: 120, alignment: .leading)
+                        Picker("", selection: $preferences.menuBarIconStyle) {
+                            ForEach(MenuBarIconStyle.allCases) { style in
+                                Text(style.displayName).tag(style)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                    }
+
+                    if preferences.menuBarIconStyle == .sfSymbol {
+                        HStack {
+                            Text("SF Symbol")
+                                .frame(width: 120, alignment: .leading)
+
+                            Button {
+                                showSymbolPicker = true
+                            } label: {
+                                HStack(spacing: 6) {
+                                    if let image = NSImage(systemSymbolName: preferences.customMenuBarSymbol, accessibilityDescription: nil) {
+                                        Image(nsImage: image)
+                                            .frame(width: 16, height: 16)
+                                    }
+                                    Text(preferences.customMenuBarSymbol)
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Image(systemName: "square.grid.2x2")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .frame(width: 200)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(Color(NSColor.controlBackgroundColor))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .strokeBorder(Color(NSColor.separatorColor).opacity(0.5))
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Text("Click to browse SF Symbols or enter a custom name.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if preferences.menuBarIconStyle == .custom {
+                        HStack {
+                            Text("Image path")
+                                .frame(width: 120, alignment: .leading)
+                            TextField("Path to image", text: $preferences.customMenuBarImagePath)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 200)
+
+                            Button("Browse...") {
+                                let panel = NSOpenPanel()
+                                panel.allowedContentTypes = [.png, .jpeg, .tiff]
+                                panel.canChooseFiles = true
+                                panel.canChooseDirectories = false
+                                if panel.runModal() == .OK, let url = panel.url {
+                                    preferences.customMenuBarImagePath = url.path
+                                }
+                            }
+                        }
+
+                        Text("Use a 18x18 or 36x36 pixel PNG image for best results.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 Divider()
@@ -151,6 +244,9 @@ struct GeneralPreferencesView: View {
             .padding(20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .sheet(isPresented: $showSymbolPicker) {
+            SFSymbolPickerView(selectedSymbol: $preferences.customMenuBarSymbol)
+        }
     }
 }
 
@@ -358,6 +454,51 @@ struct BehaviorPreferencesView: View {
                         .font(.headline)
 
                     Toggle("Play sound effects", isOn: $preferences.playSoundEffects)
+
+                    if preferences.playSoundEffects {
+                        HStack {
+                            Text("Copy sound")
+                                .frame(width: 100, alignment: .leading)
+                            Picker("", selection: $preferences.copySoundEffect) {
+                                ForEach(CopySoundEffect.allCases) { effect in
+                                    Text(effect.displayName).tag(effect)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .frame(width: 120)
+
+                            Button {
+                                SoundManager.shared.previewCopySound(preferences.copySoundEffect)
+                            } label: {
+                                Image(systemName: "speaker.wave.2")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Preview sound")
+                        }
+
+                        HStack {
+                            Text("Paste sound")
+                                .frame(width: 100, alignment: .leading)
+                            Picker("", selection: $preferences.pasteSoundEffect) {
+                                ForEach(PasteSoundEffect.allCases) { effect in
+                                    Text(effect.displayName).tag(effect)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+                            .frame(width: 120)
+
+                            Button {
+                                SoundManager.shared.previewPasteSound(preferences.pasteSoundEffect)
+                            } label: {
+                                Image(systemName: "speaker.wave.2")
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Preview sound")
+                        }
+                    }
+
                     Toggle("Notify when item copied", isOn: $preferences.notifyOnCopy)
 
                     Text("Audio and visual feedback for clipboard operations.")
@@ -472,7 +613,7 @@ struct AppearancePreferencesView: View {
                     HStack {
                         Text("Opacity")
                             .frame(width: 120, alignment: .leading)
-                        Slider(value: $preferences.windowTranslucency, in: 0.5...1.0, step: 0.05)
+                        Slider(value: $preferences.windowTranslucency, in: 0.2...1.0, step: 0.05)
                             .frame(maxWidth: 180)
                         Text(String(format: "%.0f%%", preferences.windowTranslucency * 100))
                             .font(.caption)
@@ -506,10 +647,39 @@ struct AppearancePreferencesView: View {
                         ForEach(AccentColorOption.allCases) { option in
                             AccentColorButton(
                                 option: option,
-                                isSelected: preferences.accentColorOption == option
+                                isSelected: !preferences.useCustomAccentColor && preferences.accentColorOption == option
                             ) {
+                                preferences.useCustomAccentColor = false
                                 preferences.accentColorOption = option
                             }
+                        }
+                    }
+
+                    Divider()
+                        .padding(.vertical, 4)
+
+                    Toggle("Use custom color", isOn: $preferences.useCustomAccentColor)
+
+                    if preferences.useCustomAccentColor {
+                        HStack(spacing: 12) {
+                            ColorPicker("", selection: Binding(
+                                get: { Color(hex: preferences.customAccentColorHex) },
+                                set: { newColor in
+                                    if let hex = newColor.toHex() {
+                                        preferences.customAccentColorHex = hex
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                            .frame(width: 40, height: 28)
+
+                            TextField("Hex color", text: $preferences.customAccentColorHex)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 100)
+
+                            Text("Click the color well or enter hex code")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
 

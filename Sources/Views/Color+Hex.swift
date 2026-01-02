@@ -23,4 +23,17 @@ extension Color {
             opacity: 1
         )
     }
+
+    /// Converts Color to hex string (e.g., "#FF5733")
+    func toHex() -> String? {
+        guard let nsColor = NSColor(self).usingColorSpace(.sRGB) else {
+            return nil
+        }
+
+        let r = Int(nsColor.redComponent * 255)
+        let g = Int(nsColor.greenComponent * 255)
+        let b = Int(nsColor.blueComponent * 255)
+
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
 }

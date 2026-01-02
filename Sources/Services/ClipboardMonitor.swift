@@ -62,8 +62,10 @@ class ClipboardMonitor {
         )
         DispatchQueue.main.async { [weak self] in
             self?.queueManager?.addItem(item)
+            // Play copy sound effect
+            SoundManager.shared.playCopySound()
         }
-        
+
         print("📋 Added to queue: \(item.shortPreview)")
     }
     
