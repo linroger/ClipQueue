@@ -1,99 +1,79 @@
 # Handoff.md
 
-**Last Updated (UTC):** 2026-01-01T12:50:22Z
+**Last Updated (UTC):** 2026-01-05T09:59:06Z
 **Status:** In Progress
-**Current Focus:** Apply Liquid Glass UI refresh and verify build/run.
+**Current Focus:** Implement queue selection ordering/paste behavior, hotkey fallback registration, and menu bar icon fixes.
 
-> RFC 2119: The keywords MUST, SHOULD, and MAY are to be interpreted as described in RFC 2119.
+The key words "MUST", "SHOULD", and "MAY" in this document are to be interpreted as described in RFC 2119.
 
 ## 1) Request & Context
-- **User’s request (quoted or paraphrased):** Read the codebase, understand how it works, and enhance it with Liquid Glass macOS 26 UI updates, new features (history, categories, pinning, search, source app icons), better performance, and bug fixes (clipboard text not showing). Add a dock icon, expand settings, add context menus, smooth animations, and responsive UI. Use Apple Docs/Cupertino/Xcode Build MCPs. Communicate with claude-code via code comments and beads issues.
-- **Operational constraints / environment:** macOS app (SwiftUI + AppKit). Project root at `/Users/rogerlin/Downloads/ClipQueue-main-2`. No git repo yet. Network enabled. Must follow agent harness rules and maintain handoff.md.
-- **Guidelines / preferences to honor:** One feature at a time; small, reversible changes; create and maintain `feature_list.json`, `agent-progress.txt`, `handoff.md`, and `init.sh`. Use beads issues for tracking. Follow macOS-native-development patterns. Avoid unnecessary comments.
-- **Scope boundaries (explicit non-goals):** Do not attempt to implement all features in a single session. Avoid large refactors without a specific feature goal.
-- **Changes since start (dated deltas):** 2026-01-01: Created initial handoff.md before implementation. 2026-01-01: Applied glass-style header/footer/search styling and shortcut keycap adjustments; built and launched app.
+- **User’s request (quoted or paraphrased):** Update ClipQueue macOS app to add settings and behaviors: new paste-newline options, auto-resize queue height, fix custom menu bar icon, multi-selection with command/shift click and keyboard actions, favorites and recents tabs with segmented pickers, context menu actions, drag-to-paste to external apps, configurable keyboard shortcuts without modifier requirement, and tab persistence options.
+- **Operational constraints / environment:** macOS app (SwiftUI + AppKit) in `/Users/rogerlin/Downloads/ClipQueue-main-2`; network restricted; must use Apple docs MCP, Cupertino MCP, and local Apple sample code from `/Users/rogerlin/SwiftDB` for guidance; use bd (beads) for issue tracking; create and maintain this handoff.
+- **Guidelines / preferences to honor:** Follow AGENTS.md playbook; create step-by-step plan with evidence; use RFC-style MUST/SHOULD/MAY; keep edits small; avoid non-ASCII unless needed; use apply_patch for single-file edits.
+- **Scope boundaries (explicit non-goals):** No new features outside listed tasks; no refactor unrelated systems.
+- **Changes since start (dated deltas):** 2025-02-14T19:20:00Z - created initial handoff with baseline understanding. 2026-01-05T09:21:52Z - re-read Swift files, ran bd onboard/prime, and gathered Apple docs + SwiftDB references for list selection and status items.
 
 ## 2) Requirements → Acceptance Checks (traceable)
 | Requirement | Acceptance Check (scenario steps) | Expected Outcome | Evidence to Capture |
 |---|---|---|---|
-| R1: Clipboard text appears in queue view. | Copy text in another app → open ClipQueue window → observe new item. | Item preview shows copied text with timestamp. | Screenshot or log snippet. |
-| R2: Liquid Glass UI refresh for macOS 26. | Open queue window → verify glass materials, modern spacing, updated controls. | UI visually matches macOS 26 Liquid Glass aesthetic. | Screenshot of window. |
-| R3: Dock icon enabled. | Launch app → observe Dock. | App appears in Dock with icon. | Screenshot or plist diff. |
-| R4: Search bar with live filtering. | Enter text in search → list filters immediately. | Items update live with debounce. | Screen recording or log. |
-| R5: Categories with color-coded labels. | Create category → assign item → view list. | Items show category color and filter by category. | Screenshot. |
-| R6: History view. | Copy items → open history → scroll. | Historical items persist beyond queue. | Screenshot. |
-| R7: Pin items for persistence. | Pin item → restart app → item remains pinned. | Pinned items persist and remain visible. | Screenshot + restart note. |
-| R8: Show source app icon. | Copy text from a known app → view item. | Item shows app icon or fallback. | Screenshot. |
-| R9: Performance for millions of items. | Seed large dataset → scroll and search. | UI remains responsive; memory stable. | Profiling notes. |
-| R10: Expanded settings customization. | Open Preferences → adjust new settings. | Settings persist and affect behavior. | Screenshot. |
-| R11: Context menus. | Right-click item and list background. | Relevant actions appear and work. | Screenshot. |
-| R12: Smooth animations with speed control. | Trigger reorder or item insert. | Animations are smooth and adjustable. | Screen recording. |
-| R13: Responsive design. | Resize window small/large. | Layout adapts without truncation. | Screenshot. |
-| R14: HIG/SwiftUI updates. | Compare controls and layout to latest guidance. | UI uses modern system styles. | Screenshot. |
+| R1: Settings allow newline after paste with Enter or Shift+Enter | Open Preferences → Behavior; toggle new options; paste item with Enter vs Shift+Enter | App inserts newline per selected option only | Screen recording or log + code diff |
+| R2: Queue view auto-resizes height based on item count without changing row size | Enable new auto-resize option; shrink queue to few items | Window height reduces proportionally; row height unchanged | Screen recording + code diff |
+| R3: Custom menu bar icon displays user-selected SF Symbol or image | Set menu bar icon style to custom or SF Symbol; relaunch or change | Menu bar icon updates from default | Screenshot or log + code diff |
+| R4: Multi-selection supports cmd/shift click with delete/enter/control-w actions | Select multiple queue items; press Delete, Enter, Ctrl+W | Delete removes selected; Enter pastes selected in selection order with line breaks; Ctrl+W pastes selected sequentially without extra trailing newline | Screen recording + code diff |
+| R5: Favorites/Recents tabs and segmented picker layout rules | Toggle tab visibility options; observe picker layout | Top picker shows Queue+Favorites; bottom shows History+Recents when 4 tabs; if only 3 tabs show single top picker | Screenshot + code diff |
+| R6: Drag item from queue to other app textfield pastes content | Drag queue item onto external text field | Dropped text inserts content | Screen recording + code diff |
+| R7: Keyboard shortcut editor accepts any key combo (no modifier required) | Record shortcut like Shift+Tab or Tab; save; relaunch; test | Shortcut registers and triggers action even without command/option/control | Screen recording + code diff |
+| R8: Tab persistence settings for show/hide window | Set preference to restore Queue or last tab; hide/show window | Tab selection matches setting | Screen recording + code diff |
 
-> Notes: Each requirement must have at least one scenario-level acceptance check and evidence artifact.
+> Notes: Each requirement must have at least one scenario-level acceptance check and an evidence artifact. Tie failures back to the specific requirement.
 
 ## 3) Plan & Decomposition (with rationale)
-- **Critical path narrative:** Establish harness and tracking first, then fix the clipboard display bug to restore core functionality before expanding UI or data model. This reduces risk and provides a stable baseline.
-- **Step 1:** Create `feature_list.json`, `agent-progress.txt`, `handoff.md`, `.beads/issues.jsonl`, and `init.sh`. Risk: minimal; rollback by deleting files. Evidence: file creation.
-- **Step 2:** Diagnose clipboard display issue, implement smallest fix, and validate via manual copy. Risk: moderate; verify with logs and UI update.
-- **Step 3:** Incrementally tackle UI refresh, settings expansion, and data model features in separate sessions.
-- **Decision log reference(s):** Pending.
+- **Critical path narrative:** Start with model/preferences and routing changes that unlock UI behavior; then adjust queue view selection + segmented pickers; then update menu bar icon/shortcut registration; finally implement window resizing and drag-to-paste. This order reduces UI uncertainty first and isolates AppDelegate changes later.
+- **Step 1:** Create bd issues and map requirements to code areas; confirm current UI/behavior in code. Risks: mis-scoping. Evidence: bd issue IDs (CQ-5u4, CQ-us6, CQ-eyk, CQ-alm, CQ-q42).
+- **Step 2:** Add preferences + data model fields for favorites, recents visibility, newline behavior, tab persistence, auto-resize. Risks: state explosion. Evidence: code diff + updated PreferencesView.
+- **Step 3:** Update QueueView UI: segmented pickers, favorites/history/recents tabs, multi-selection, keyboard handling, context menu, drag-to-paste. Risks: selection UX regression. Evidence: code diff + local UI check notes.
+- **Step 4:** Update AppDelegate/KeyboardShortcutManager: custom icon use, shortcut parsing/registration, window auto-resize logic, tab persistence on show/hide. Risks: hotkey registration failure. Evidence: code diff + console logs.
+- **Step 5:** Run targeted verification checks, update handoff.md with evidence. Evidence: logs/screenshots.
+- **Decision log reference(s):** TBD as choices made.
 
 ## 4) To-Do & Progress Ledger
-- [x] Create agent harness files and beads issues — **done**; evidence: `handoff.md`, `feature_list.json`, `agent-progress.txt`, `init.sh`, `.beads/issues.jsonl`.
-- [x] Diagnose clipboard text display issue — **done**; evidence: AppDelegate hides window and previously stopped monitoring.
-- [ ] Implement fix and verify UI shows text — in progress; code updated, manual verification pending.
-- [ ] Verify Dock icon appears — in progress; code updated, manual verification pending.
-- [ ] Implement history feature with SwiftData persistence — in progress; code added, manual verification pending.
-- [ ] Add selectable/copyable history items and context menus — in progress; code added, manual verification pending.
-- [ ] Fix shortcuts layout and button styling — in progress; code updated (keycap-style buttons), manual verification pending.
-- [ ] Implement search bar with live filtering — in progress; code added, manual verification pending.
-- [ ] Add source app icon capture and display — in progress; code added, manual verification pending.
-- [ ] Implement categories with color coding — in progress; code added, manual verification pending.
-- [ ] Implement pinning with persistent pinned section — in progress; code added, manual verification pending.
-- [ ] Apply Liquid Glass UI refresh — in progress; glass header/footer/search and modernized empty states added, manual verification pending.
-- [ ] Update feature_list.json pass state — planned evidence: JSON diff.
+- [x] Create bd issues for each feature cluster — **done**; evidence: CQ-5u4, CQ-us6, CQ-eyk, CQ-alm, CQ-q42
+- [x] Confirm and fix selection ordering + paste newline behavior — **done**; evidence: code diff in Sources/Views/QueueView.swift
+- [x] Verify segmented picker layout and tab navigation shortcut — **done**; evidence: code diff in Sources/Views/QueueView.swift (KeyEventMonitor moved to root)
+- [x] Fix menu bar icon customization display — **done**; evidence: code diff in Sources/ClipQueue/AppDelegate.swift
+- [x] Allow hotkeys without command/option/control modifiers — **done**; evidence: code diff in Sources/Services/KeyboardShortcutManager.swift
+- [ ] Validate drag-to-paste to external apps — planned evidence: code diff + UI check
 
 ## 5) Findings, Decisions, Assumptions
-- **Finding:** `toggleWindow()` stopped clipboard monitoring when the window was hidden, which can prevent items from ever appearing if the window stays closed.
-- **Decision:** Keep monitoring active when the window is hidden and make `startMonitoring()` idempotent to avoid duplicate timers.
-- **Decision:** Schedule the clipboard timer in common run loop modes to improve reliability.
-- **Decision:** Enable Dock icon by setting `LSUIElement` to false and configuring the app icon at launch.
-- **Decision:** Use SwiftData for history persistence and add a paged HistoryStore to avoid loading millions of rows.
-- **Decision:** Raise deployment target to macOS 14.0 to use SwiftData APIs.
-- **Decision:** Capture frontmost application info on copy to display source app icons in the UI.
-- **Decision:** Apply SwiftUI materials to header/footer and use ContentUnavailableView for modern empty states per HIG guidance on materials and hierarchy.
-- **Assumption:** The above changes fix the missing text issue; needs manual copy test to confirm.
+- **Finding:** QueueView uses ScrollView/LazyVStack with single selection; no multi-select support built in.
+- **Finding:** KeyboardShortcutManager registers fixed defaults; preferences UI toggles recording but does not capture keys.
+- **Assumption:** Favorites should be distinct from pinned history; needs explicit model field. Falsification: inspect existing models and history (completed).
+- **Finding:** Apple docs confirm SwiftUI `List(selection:)` supports multi-selection with `Set` (https://developer.apple.com/documentation/swiftui/list/init(selection:content:)-4sffx/).
+- **Finding:** Apple docs describe `NSStatusItem` customization via `button` (https://developer.apple.com/documentation/appkit/nsstatusitem).
+- **Finding:** SwiftDB sample `swiftui-building-a-great-mac-app-with-swiftui/.../ContentView.swift` shows `List(selection:)` for macOS sidebar selection.
+- **Finding:** SwiftDB sample `swiftui-restoring-your-app-s-state-with-swiftui/StateRestoration/ContentView.swift` demonstrates `onDrag` with `NSItemProvider`.
+- **Decision:** Preserve user selection order by capturing click modifiers and adjusting selectionOrder on selection changes; shift selection falls back to queue order for deterministic paste ordering.
+- **Decision:** Register shortcuts without command/option/control via a session event tap fallback; avoid swallowing keystrokes when monitoring is disabled.
 
 ## 6) Issues, Mistakes, Recoveries
-- **Build failure → main actor call & FetchDescriptor init mismatch → fixed by dispatching bootstrap on MainActor and setting fetchOffset/fetchLimit properties → build passes.**
+- No mistakes recorded yet.
 
 ## 7) Scenario-Focused Resolution Tests (problem-centric)
-- **Clipboard display bug:** Repro steps pending; fix applied but not yet manually verified.
+- **Repro steps:** Not run yet. **Change applied:** N/A. **Post-change behavior:** N/A. **Verdict:** not resolved.
 
 ## 8) Verification Summary (evidence over intuition)
-**Fast checks run:** `xcodebuild` via Xcode Build MCP (macOS build) — succeeded after Liquid Glass styling changes.
-**Acceptance runs:** App launched via Xcode Build MCP; manual functional checks pending.
+- **Fast checks run:** `xcodebuild -project ClipQueue.xcodeproj -scheme ClipQueue -configuration Debug build` — **passed** (BUILD SUCCEEDED).
+- **Acceptance runs:** None yet.
+- **Performance/latency snapshots (if relevant):** N/A.
 
 ## 9) Remaining Work & Next Steps
-- **Open items & blockers:** Implement R1 fix, then plan UI refresh and data model enhancements.
-- **Risks:** Large feature scope; mitigate by one-feature-per-session workflow.
-- **Next working interval plan:** Create harness files and beads issues, then address clipboard display issue.
+- **Open items & blockers:** Implement fixes for selection ordering, hotkey registration without modifier, and menu bar icon updates; confirm tab picker behavior.
+- **Risks:** Global hotkey fallback may conflict with system shortcuts; drag-to-paste behavior may require UTType adjustments.
+- **Next working interval plan:** Update queue selection/paste logic, adjust hotkey registration fallback, then verify menu bar icon refresh.
 
 ## 10) Updates to This File (append-only)
-- 2026-01-01T10:49:27Z: Created initial handoff.md with requirements, plan, and assumptions.
-- 2026-01-01T10:49:27Z: Logged harness file creation and beads issues initialization.
-- 2026-01-01T10:52:35Z: Recorded clipboard monitoring fixes and build verification.
-- 2026-01-01T10:52:35Z: Initialized git repo and created initial commits for harness and baseline project.
-- 2026-01-01T11:07:47Z: Documented Dock icon changes and updated progress ledger.
-- 2026-01-01T11:18:58Z: Logged SwiftData history work and deployment target update.
-- 2026-01-01T11:33:53Z: Recorded build failure analysis and successful rebuild.
-- 2026-01-01T11:44:51Z: Added selection/copy/context menus for queue and history views.
-- 2026-01-01T11:45:31Z: Built and launched app for manual verification.
-- 2026-01-01T11:57:18Z: Added search filtering and verified build success.
-- 2026-01-01T12:07:41Z: Added source app icon capture and display plumbing.
-- 2026-01-01T12:08:39Z: Verified build after source app icon changes.
-- 2026-01-01T12:22:47Z: Added categories/pinning and verified build success.
-- 2026-01-01T12:24:34Z: Verified build after pinned item icon update.
-- 2026-01-01T12:50:22Z: Applied glass styling to header/footer/search, updated empty states and shortcut keycaps, built and launched app.
+- 2025-02-14T19:20:00Z: created initial handoff with request summary, requirements table, and plan.
+- 2025-02-14T19:32:00Z: added bd issue IDs, updated findings with Apple docs + sample references.
+- 2026-01-05T09:21:52Z: updated requirements wording, refreshed to-do list, and added Apple docs + SwiftDB references.
+- 2026-01-05T09:50:16Z: recorded selection order/paste logic updates, hotkey fallback decision, and menu bar icon changes.
+- 2026-01-05T09:59:06Z: recorded successful debug build in verification summary.

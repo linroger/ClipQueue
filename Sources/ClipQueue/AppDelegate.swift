@@ -68,22 +68,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         keyboardShortcutManager?.onToggleMiniMode = { [weak self] in
             self?.toggleMiniMode()
         }
-        keyboardShortcutManager?.registerDefaultShortcuts()
+        keyboardShortcutManager?.registerShortcuts()
         
         // Create the status bar item (menu bar icon)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         
         if let button = statusItem?.button {
-            // Use SF Symbol for menu bar icon
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-            if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
-                button.image = image.withSymbolConfiguration(config)
-            } else {
-                // Fallback to text if SF Symbol not available
-                button.title = "📋"
-            }
             button.action = #selector(toggleWindow)
             button.target = self
+            updateMenuBarIcon()
         }
         
         // Create the floating window
@@ -168,12 +161,96 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.updateWindowTranslucency(window)
             }
         }.store(in: &cancellables)
+
+        // Observe keyboard shortcut changes
+        Preferences.shared.$copyAndRecordShortcut.sink { [weak self] _ in
+            self?.keyboardShortcutManager?.updateShortcuts()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$toggleWindowShortcut.sink { [weak self] _ in
+            self?.keyboardShortcutManager?.updateShortcuts()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$pasteNextShortcut.sink { [weak self] _ in
+            self?.keyboardShortcutManager?.updateShortcuts()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$pasteAllShortcut.sink { [weak self] _ in
+            self?.keyboardShortcutManager?.updateShortcuts()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$clearAllShortcut.sink { [weak self] _ in
+            self?.keyboardShortcutManager?.updateShortcuts()
+        }.store(in: &cancellables)
+
+        // Observe window sizing related preferences
+        Preferences.shared.$autoResizeWindowHeight.sink { [weak self] _ in
+            self?.updateQueueWindowHeight()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$rowDensity.sink { [weak self] _ in
+            self?.updateQueueWindowHeight()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$showPreviewLines.sink { [weak self] _ in
+            self?.updateQueueWindowHeight()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$textSize.sink { [weak self] _ in
+            self?.updateQueueWindowHeight()
+        }.store(in: &cancellables)
+
+        Preferences.shared.$selectedQueueTab.sink { [weak self] _ in
+            self?.updateQueueWindowHeight()
+        }.store(in: &cancellables)
     }
 
     private func updateWindowTranslucency(_ window: NSWindow) {
         let alpha = CGFloat(Preferences.shared.windowTranslucency)
         window.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(alpha)
         window.alphaValue = alpha
+    }
+
+    private func updateQueueWindowHeight(for itemsCount: Int? = nil) {
+        guard let window = queueWindow else { return }
+        guard Preferences.shared.autoResizeWindowHeight else { return }
+        guard Preferences.shared.selectedQueueTab == .queue else { return }
+
+        let count = itemsCount ?? queueManager?.items.count ?? 0
+        let targetHeight = estimatedQueueWindowHeight(for: count)
+
+        var frame = window.frame
+        let newHeight = min(max(targetHeight, window.minSize.height), window.maxSize.height)
+        let heightDelta = frame.size.height - newHeight
+        if abs(heightDelta) < 1 { return }
+
+        frame.origin.y += heightDelta
+        frame.size.height = newHeight
+        window.setFrame(frame, display: true, animate: true)
+    }
+
+    private func estimatedQueueWindowHeight(for itemCount: Int) -> CGFloat {
+        let density = Preferences.shared.rowDensity
+        let previewLines = max(1, Preferences.shared.showPreviewLines)
+        let textScale = Preferences.shared.textSize.scaleFactor
+
+        let contentFont = NSFont.preferredFont(forTextStyle: .callout).pointSize * textScale
+        let metaFont = NSFont.preferredFont(forTextStyle: .caption2).pointSize * textScale
+
+        let rowTextHeight = contentFont * CGFloat(previewLines) + metaFont + density.contentSpacing
+        let rowHeight = rowTextHeight + density.verticalPadding * 2
+        let rowSpacing: CGFloat = 4
+
+        let headerHeight: CGFloat = 48
+        let footerHeight: CGFloat = 44
+        let listPadding: CGFloat = 16
+
+        if itemCount <= 0 {
+            return headerHeight + footerHeight + 140
+        }
+
+        let rowsHeight = (rowHeight * CGFloat(itemCount)) + (rowSpacing * CGFloat(max(0, itemCount - 1)))
+        return headerHeight + footerHeight + rowsHeight + listPadding
     }
 
     private func updateAppearance(_ mode: AppearanceMode) {
@@ -205,7 +282,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.isReleasedWhenClosed = false
 
         // Set minimum and maximum sizes for responsive behavior
-        window.minSize = NSSize(width: 280, height: 300)
+        window.minSize = NSSize(width: 280, height: 200)
         window.maxSize = NSSize(width: 800, height: 1200)
         
         // Add transparency based on user preference
@@ -220,8 +297,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             onOpenPreferences: { [weak self] in
                 self?.openPreferences()
             },
-            onPasteToPreviousApp: { [weak self] content, removeFromQueue, item in
-                self?.pasteContentToPreviousApp(content, removeFromQueue: removeFromQueue, item: item)
+            onPasteToPreviousApp: { [weak self] content, removeFromQueue, itemIds in
+                self?.pasteContentToPreviousApp(content, removeFromQueue: removeFromQueue, itemIds: itemIds)
             }
         )
         if let modelContainer {
@@ -234,6 +311,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         queueManager?.$items.sink { [weak window, weak self] items in
             window?.title = "ClipQueue (\(items.count))"
             self?.updateDockBadge(count: items.count)
+            self?.updateQueueWindowHeight(for: items.count)
         }.store(in: &cancellables)
         
         // Save window frame when it changes
@@ -278,6 +356,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             // Show window and resume monitoring
+            if Preferences.shared.returnToQueueOnShow {
+                Preferences.shared.selectedQueueTab = .queue
+            }
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: false)
             if Preferences.shared.pauseMonitoringWhenHidden {
@@ -341,44 +422,94 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Menu Bar Icon
 
     func updateMenuBarIcon() {
-        guard let button = statusItem?.button else { return }
+        guard let button = statusItem?.button else {
+            print("⚠️ Menu bar button not available")
+            return
+        }
+
+        button.title = ""
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
 
         let style = Preferences.shared.menuBarIconStyle
+        let fallbackImage = configuredSymbolImage(named: "list.clipboard")
 
         switch style {
         case .default:
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-            if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
-                button.image = image.withSymbolConfiguration(config)
+            if let image = fallbackImage {
+                applyMenuBarIcon(image, to: button)
+                print("🎨 Menu bar icon: default (list.clipboard)")
             }
 
         case .sfSymbol:
             let symbolName = Preferences.shared.customMenuBarSymbol
-            let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-            if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ClipQueue") {
-                button.image = image.withSymbolConfiguration(config)
+            if let image = configuredSymbolImage(named: symbolName) {
+                applyMenuBarIcon(image, to: button)
+                print("🎨 Menu bar icon: SF Symbol (\(symbolName))")
             } else {
                 // Fallback to default if symbol not found
-                if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
-                    button.image = image.withSymbolConfiguration(config)
+                print("⚠️ SF Symbol '\(symbolName)' not found, using default")
+                if let image = fallbackImage {
+                    applyMenuBarIcon(image, to: button)
                 }
             }
 
         case .custom:
             let imagePath = Preferences.shared.customMenuBarImagePath
-            if !imagePath.isEmpty, let image = NSImage(contentsOfFile: imagePath) {
-                // Resize for menu bar
-                image.size = NSSize(width: 18, height: 18)
-                image.isTemplate = true
-                button.image = image
+            if !imagePath.isEmpty {
+                // Try to load from file path
+                if let image = NSImage(contentsOfFile: imagePath) {
+                    let resizedImage = resizedMenuBarImage(from: image)
+                    applyMenuBarIcon(resizedImage, to: button)
+                    print("🎨 Menu bar icon: custom image (\(imagePath))")
+                } else {
+                    // Try loading from URL in case path needs URL handling
+                    let url = URL(fileURLWithPath: imagePath)
+                    if let image = NSImage(contentsOf: url) {
+                        let resizedImage = resizedMenuBarImage(from: image)
+                        applyMenuBarIcon(resizedImage, to: button)
+                        print("🎨 Menu bar icon: custom image via URL (\(imagePath))")
+                    } else {
+                        print("⚠️ Failed to load custom image: \(imagePath)")
+                        // Fallback to default
+                        if let image = fallbackImage {
+                            applyMenuBarIcon(image, to: button)
+                        }
+                    }
+                }
             } else {
+                print("⚠️ Custom image path is empty, using default")
                 // Fallback to default
-                let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
-                if let image = NSImage(systemSymbolName: "list.clipboard", accessibilityDescription: "ClipQueue") {
-                    button.image = image.withSymbolConfiguration(config)
+                if let image = fallbackImage {
+                    applyMenuBarIcon(image, to: button)
                 }
             }
         }
+    }
+
+    private func configuredSymbolImage(named name: String) -> NSImage? {
+        let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: "ClipQueue") else {
+            return nil
+        }
+        return image.withSymbolConfiguration(config) ?? image
+    }
+
+    private func resizedMenuBarImage(from image: NSImage) -> NSImage {
+        let targetSize = NSSize(width: 18, height: 18)
+        let resizedImage = NSImage(size: targetSize)
+        resizedImage.lockFocus()
+        image.draw(in: NSRect(origin: .zero, size: targetSize),
+                   from: NSRect(origin: .zero, size: image.size),
+                   operation: .sourceOver,
+                   fraction: 1.0)
+        resizedImage.unlockFocus()
+        return resizedImage
+    }
+
+    private func applyMenuBarIcon(_ image: NSImage, to button: NSStatusBarButton) {
+        image.isTemplate = true
+        button.image = image
     }
 
     // MARK: - Mini Mode (Window to Icon)
@@ -438,15 +569,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Paste to Previous App
 
     /// Copies content to clipboard, switches to the previous app, and simulates Cmd+V
-    func pasteContentToPreviousApp(_ content: String, removeFromQueue: Bool = false, item: ClipboardItem? = nil) {
+    func pasteContentToPreviousApp(_ content: String, removeFromQueue: Bool = false, itemIds: [UUID] = []) {
+        // Prepare content with optional newline
+        var pasteContent = content
+        if Preferences.shared.appendNewlineAfterPaste, !pasteContent.hasSuffix("\n") {
+            pasteContent += "\n"
+        }
+
         // Copy to clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(content, forType: .string)
+        pasteboard.setString(pasteContent, forType: .string)
 
         // Store content to avoid re-adding when pasted
-        if let item = item, removeFromQueue {
-            queueManager?.removeItem(item)
+        if removeFromQueue, !itemIds.isEmpty {
+            queueManager?.removeItems(ids: itemIds)
         }
 
         // Play paste sound effect

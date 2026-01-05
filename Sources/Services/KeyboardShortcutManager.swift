@@ -7,6 +7,9 @@ class KeyboardShortcutManager {
     private var hotKeyRefs: [EventHotKeyRef?] = []
     private var eventHandler: EventHandlerRef?
     private var isMonitoringEnabled = true
+    private var fallbackShortcuts: [UInt32: KeyboardShortcut] = [:]
+    private var eventTap: CFMachPort?
+    private var eventTapSource: CFRunLoopSource?
     
     weak var queueManager: QueueManager?
     var onToggleWindow: (() -> Void)?
@@ -41,62 +44,61 @@ class KeyboardShortcutManager {
         }
     }
     
-    func registerDefaultShortcuts() {
-        // ⌃Q - Copy and record
-        registerHotKey(
-            keyCode: UInt32(kVK_ANSI_Q),
-            modifiers: UInt32(controlKey),
-            id: 1
-        )
-        
-        // ⌃⌥⌘C - Toggle window
-        registerHotKey(
-            keyCode: UInt32(kVK_ANSI_C),
-            modifiers: UInt32(controlKey | optionKey | cmdKey),
-            id: 2
-        )
-        
-        // ⌃W - Paste next
-        registerHotKey(
-            keyCode: UInt32(kVK_ANSI_W),
-            modifiers: UInt32(controlKey),
-            id: 3
-        )
-        
-        // ⌃E - Paste all
-        registerHotKey(
-            keyCode: UInt32(kVK_ANSI_E),
-            modifiers: UInt32(controlKey),
-            id: 4
-        )
-        
-        // ⌃X - Clear all
-        registerHotKey(
-            keyCode: UInt32(kVK_ANSI_X),
-            modifiers: UInt32(controlKey),
-            id: 5
-        )
+    func registerShortcuts(from preferences: Preferences = .shared) {
+        fallbackShortcuts.removeAll()
+        registerHotKey(shortcut: preferences.copyAndRecordShortcut, id: 1)
+        registerHotKey(shortcut: preferences.toggleWindowShortcut, id: 2)
+        registerHotKey(shortcut: preferences.pasteNextShortcut, id: 3)
+        registerHotKey(shortcut: preferences.pasteAllShortcut, id: 4)
+        registerHotKey(shortcut: preferences.clearAllShortcut, id: 5)
 
-        // ⌃M - Toggle mini mode
+        // Mini mode keeps its legacy shortcut for now
         registerHotKey(
             keyCode: UInt32(kVK_ANSI_M),
-            modifiers: UInt32(controlKey),
+            modifiers: UInt32(controlKey | optionKey),
             id: 6
         )
 
-        // Install event handler
         installEventHandler()
+        installEventTapIfNeeded()
+        if fallbackShortcuts.isEmpty {
+            removeEventTap()
+        }
 
         print("⌨️ Keyboard shortcuts registered")
-        print("   ⌃Q - Copy and record")
-        print("   ⌃⌥⌘C - Toggle window")
-        print("   ⌃W - Paste next")
-        print("   ⌃E - Paste all")
-        print("   ⌃X - Clear all")
-        print("   ⌃M - Toggle mini mode")
+        print("   \(preferences.copyAndRecordShortcut.displayString) - Copy and record")
+        print("   \(preferences.toggleWindowShortcut.displayString) - Toggle window")
+        print("   \(preferences.pasteNextShortcut.displayString) - Paste next")
+        print("   \(preferences.pasteAllShortcut.displayString) - Paste all")
+        print("   \(preferences.clearAllShortcut.displayString) - Clear all")
+        print("   ⌃⌥M - Toggle mini mode")
+    }
+
+    func updateShortcuts(from preferences: Preferences = .shared) {
+        unregisterAll()
+        registerShortcuts(from: preferences)
     }
     
-    private func registerHotKey(keyCode: UInt32, modifiers: UInt32, id: UInt32) {
+    private func registerHotKey(shortcut: KeyboardShortcut, id: UInt32) {
+        let flags = shortcut.modifierFlags
+        if requiresEventTap(for: flags) {
+            fallbackShortcuts[id] = shortcut
+            return
+        }
+
+        let success = registerHotKey(
+            keyCode: UInt32(shortcut.keyCode),
+            modifiers: carbonModifiers(from: flags),
+            id: id
+        )
+
+        if !success {
+            fallbackShortcuts[id] = shortcut
+        }
+    }
+
+    @discardableResult
+    private func registerHotKey(keyCode: UInt32, modifiers: UInt32, id: UInt32) -> Bool {
         var hotKeyRef: EventHotKeyRef?
         let hotKeyID = EventHotKeyID(signature: OSType(0x4B455920), id: id) // 'KEY '
         
@@ -111,9 +113,25 @@ class KeyboardShortcutManager {
         
         if status == noErr {
             hotKeyRefs.append(hotKeyRef)
+            return true
         } else {
-            print("⚠️ Failed to register hotkey with code \(keyCode)")
+            print("⚠️ Failed to register hotkey with code \(keyCode) modifiers \(modifiers)")
+            return false
         }
+    }
+
+    private func carbonModifiers(from flags: NSEvent.ModifierFlags) -> UInt32 {
+        var modifiers: UInt32 = 0
+        if flags.contains(.control) { modifiers |= UInt32(controlKey) }
+        if flags.contains(.option) { modifiers |= UInt32(optionKey) }
+        if flags.contains(.shift) { modifiers |= UInt32(shiftKey) }
+        if flags.contains(.command) { modifiers |= UInt32(cmdKey) }
+        return modifiers
+    }
+
+    private func requiresEventTap(for flags: NSEvent.ModifierFlags) -> Bool {
+        let primary: NSEvent.ModifierFlags = [.command, .control, .option]
+        return flags.intersection(primary).isEmpty
     }
     
     private func installEventHandler() {
@@ -282,6 +300,8 @@ class KeyboardShortcutManager {
             }
         }
         hotKeyRefs.removeAll()
+        fallbackShortcuts.removeAll()
+        removeEventTap()
         
         if let handler = eventHandler {
             RemoveEventHandler(handler)
@@ -293,5 +313,79 @@ class KeyboardShortcutManager {
     
     deinit {
         unregisterAll()
+    }
+
+    // MARK: - Event Tap Fallback (no command/option/control modifiers)
+
+    private func installEventTapIfNeeded() {
+        guard eventTap == nil else { return }
+        guard !fallbackShortcuts.isEmpty else { return }
+
+        let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
+        let callback: CGEventTapCallBack = { _, type, event, userInfo in
+            guard type == .keyDown, let userInfo else {
+                return Unmanaged.passUnretained(event)
+            }
+            let manager = Unmanaged<KeyboardShortcutManager>
+                .fromOpaque(userInfo)
+                .takeUnretainedValue()
+            let handled = manager.handleEventTap(event)
+            return handled ? nil : Unmanaged.passUnretained(event)
+        }
+
+        let pointer = Unmanaged.passUnretained(self).toOpaque()
+        eventTap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: mask,
+            callback: callback,
+            userInfo: pointer
+        )
+
+        guard let eventTap else {
+            print("⚠️ Failed to install event tap for fallback shortcuts")
+            return
+        }
+
+        eventTapSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
+        if let eventTapSource {
+            CFRunLoopAddSource(CFRunLoopGetMain(), eventTapSource, .commonModes)
+        }
+        CGEvent.tapEnable(tap: eventTap, enable: true)
+        print("⌨️ Event tap installed for fallback shortcuts")
+    }
+
+    private func removeEventTap() {
+        if let eventTapSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), eventTapSource, .commonModes)
+        }
+        if let eventTap {
+            CFMachPortInvalidate(eventTap)
+        }
+        eventTapSource = nil
+        eventTap = nil
+    }
+
+    private func handleEventTap(_ event: CGEvent) -> Bool {
+        if event.getIntegerValueField(.keyboardEventAutorepeat) != 0 {
+            return false
+        }
+
+        let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+        let flags = NSEvent.ModifierFlags(rawValue: UInt(event.flags.rawValue))
+            .intersection(.deviceIndependentFlagsMask)
+
+        for (id, shortcut) in fallbackShortcuts {
+            if shortcut.keyCode == keyCode && shortcut.modifierFlags == flags {
+                if id != 2 && !isMonitoringEnabled {
+                    return false
+                }
+                handleHotKey(id: id)
+                return true
+            }
+        }
+
+        return false
     }
 }
