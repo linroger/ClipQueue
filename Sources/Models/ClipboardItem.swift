@@ -11,10 +11,14 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
     let sourceAppName: String?
     let categoryId: UUID?
     let isPinned: Bool
-    
+    let isFavorite: Bool
+    /// File path for image items (stored on disk due to size)
+    let imagePath: String?
+
     enum ItemType: String, Codable {
         case text
         case url
+        case image
         case other
     }
     
@@ -24,7 +28,9 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         sourceAppBundleIdentifier: String? = nil,
         sourceAppName: String? = nil,
         categoryId: UUID? = nil,
-        isPinned: Bool = false
+        isPinned: Bool = false,
+        isFavorite: Bool = false,
+        imagePath: String? = nil
     ) {
         self.id = UUID()
         self.content = content
@@ -34,6 +40,8 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         self.sourceAppName = sourceAppName
         self.categoryId = categoryId
         self.isPinned = isPinned
+        self.isFavorite = isFavorite
+        self.imagePath = imagePath
     }
 
     init(
@@ -44,7 +52,9 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         sourceAppBundleIdentifier: String?,
         sourceAppName: String?,
         categoryId: UUID?,
-        isPinned: Bool
+        isPinned: Bool,
+        isFavorite: Bool,
+        imagePath: String? = nil
     ) {
         self.id = id
         self.content = content
@@ -54,6 +64,8 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         self.sourceAppName = sourceAppName
         self.categoryId = categoryId
         self.isPinned = isPinned
+        self.isFavorite = isFavorite
+        self.imagePath = imagePath
     }
 
     func withCategory(_ categoryId: UUID?) -> ClipboardItem {
@@ -65,7 +77,9 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
             sourceAppBundleIdentifier: sourceAppBundleIdentifier,
             sourceAppName: sourceAppName,
             categoryId: categoryId,
-            isPinned: isPinned
+            isPinned: isPinned,
+            isFavorite: isFavorite,
+            imagePath: imagePath
         )
     }
 
@@ -78,8 +92,66 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
             sourceAppBundleIdentifier: sourceAppBundleIdentifier,
             sourceAppName: sourceAppName,
             categoryId: categoryId,
-            isPinned: pinned
+            isPinned: pinned,
+            isFavorite: isFavorite,
+            imagePath: imagePath
         )
+    }
+
+    func withFavorite(_ favorite: Bool) -> ClipboardItem {
+        ClipboardItem(
+            id: id,
+            content: content,
+            timestamp: timestamp,
+            type: type,
+            sourceAppBundleIdentifier: sourceAppBundleIdentifier,
+            sourceAppName: sourceAppName,
+            categoryId: categoryId,
+            isPinned: isPinned,
+            isFavorite: favorite,
+            imagePath: imagePath
+        )
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case content
+        case timestamp
+        case type
+        case sourceAppBundleIdentifier
+        case sourceAppName
+        case categoryId
+        case isPinned
+        case isFavorite
+        case imagePath
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        content = try container.decode(String.self, forKey: .content)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        type = try container.decode(ItemType.self, forKey: .type)
+        sourceAppBundleIdentifier = try container.decodeIfPresent(String.self, forKey: .sourceAppBundleIdentifier)
+        sourceAppName = try container.decodeIfPresent(String.self, forKey: .sourceAppName)
+        categoryId = try container.decodeIfPresent(UUID.self, forKey: .categoryId)
+        isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        imagePath = try container.decodeIfPresent(String.self, forKey: .imagePath)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(content, forKey: .content)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(type, forKey: .type)
+        try container.encodeIfPresent(sourceAppBundleIdentifier, forKey: .sourceAppBundleIdentifier)
+        try container.encodeIfPresent(sourceAppName, forKey: .sourceAppName)
+        try container.encodeIfPresent(categoryId, forKey: .categoryId)
+        try container.encode(isPinned, forKey: .isPinned)
+        try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encodeIfPresent(imagePath, forKey: .imagePath)
     }
     
     // Preview text (truncated if too long)
@@ -130,6 +202,8 @@ final class ClipboardHistoryEntry {
     var sourceAppName: String?
     var categoryId: UUID?
     var isPinned: Bool
+    var isFavorite: Bool
+    var imagePath: String?
 
     init(
         id: UUID = UUID(),
@@ -139,7 +213,9 @@ final class ClipboardHistoryEntry {
         sourceAppBundleIdentifier: String? = nil,
         sourceAppName: String? = nil,
         categoryId: UUID? = nil,
-        isPinned: Bool = false
+        isPinned: Bool = false,
+        isFavorite: Bool = false,
+        imagePath: String? = nil
     ) {
         self.id = id
         self.content = content
@@ -149,6 +225,8 @@ final class ClipboardHistoryEntry {
         self.sourceAppName = sourceAppName
         self.categoryId = categoryId
         self.isPinned = isPinned
+        self.isFavorite = isFavorite
+        self.imagePath = imagePath
     }
 
     var preview: String {

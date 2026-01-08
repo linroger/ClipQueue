@@ -72,13 +72,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Create the status bar item (menu bar icon)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        
+
         if let button = statusItem?.button {
-            button.action = #selector(toggleWindow)
+            button.action = #selector(statusBarButtonClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.target = self
             updateMenuBarIcon()
         }
-        
+
+        // Create context menu for status bar
+        createStatusBarMenu()
+
         // Create the floating window
         createFloatingWindow()
 
@@ -241,16 +245,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let rowHeight = rowTextHeight + density.verticalPadding * 2
         let rowSpacing: CGFloat = 4
 
-        let headerHeight: CGFloat = 48
-        let footerHeight: CGFloat = 44
-        let listPadding: CGFloat = 16
+        let headerHeight: CGFloat = 48  // Toolbar with tabs and actions
+        let footerHeight: CGFloat = 44  // Bottom controls
+        let listPadding: CGFloat = 16   // Top and bottom padding within scroll view
 
+        // Empty state: just enough for header, footer, and empty message
         if itemCount <= 0 {
-            return headerHeight + footerHeight + 140
+            let emptyStateHeight: CGFloat = 100  // Space for "No items" message
+            return headerHeight + footerHeight + emptyStateHeight
         }
 
-        let rowsHeight = (rowHeight * CGFloat(itemCount)) + (rowSpacing * CGFloat(max(0, itemCount - 1)))
-        return headerHeight + footerHeight + rowsHeight + listPadding
+        // Calculate total height needed for all rows plus spacing between them
+        let totalRowsHeight = (rowHeight * CGFloat(itemCount)) + (rowSpacing * CGFloat(max(0, itemCount - 1)))
+
+        // Add all components: header + padding + rows + padding + footer
+        let totalHeight = headerHeight + listPadding + totalRowsHeight + listPadding + footerHeight
+
+        return totalHeight
     }
 
     private func updateAppearance(_ mode: AppearanceMode) {
@@ -341,9 +352,119 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: false)
     }
     
+    // MARK: - Status Bar Menu
+
+    private func createStatusBarMenu() {
+        let menu = NSMenu()
+
+        // Show Window
+        let showItem = NSMenuItem(title: "Show Window", action: #selector(showWindow), keyEquivalent: "")
+        showItem.target = self
+        menu.addItem(showItem)
+
+        // Hide Window
+        let hideItem = NSMenuItem(title: "Hide Window", action: #selector(hideWindow), keyEquivalent: "")
+        hideItem.target = self
+        menu.addItem(hideItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        // Minimize Window
+        let minimizeItem = NSMenuItem(title: "Minimize Window", action: #selector(minimizeWindow), keyEquivalent: "")
+        minimizeItem.target = self
+        menu.addItem(minimizeItem)
+
+        // Maximize Window
+        let maximizeItem = NSMenuItem(title: "Maximize Window", action: #selector(maximizeWindow), keyEquivalent: "")
+        maximizeItem.target = self
+        menu.addItem(maximizeItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        // Preferences
+        let prefsItem = NSMenuItem(title: "Preferences...", action: #selector(openPreferences), keyEquivalent: ",")
+        prefsItem.target = self
+        menu.addItem(prefsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        // About
+        let aboutItem = NSMenuItem(title: "About ClipQueue", action: #selector(showAbout), keyEquivalent: "")
+        aboutItem.target = self
+        menu.addItem(aboutItem)
+
+        // Quit
+        let quitItem = NSMenuItem(title: "Quit ClipQueue", action: #selector(quitApplication), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        statusItem?.menu = menu
+    }
+
+    @objc private func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+
+        if event.type == .rightMouseUp {
+            // Right-click: show menu (menu is set in statusItem, so it will show automatically)
+            statusItem?.menu?.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height), in: sender)
+        } else {
+            // Left-click: toggle window
+            // Remove menu temporarily so left-click doesn't show menu
+            let menu = statusItem?.menu
+            statusItem?.menu = nil
+            toggleWindow()
+            // Restore menu after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.statusItem?.menu = menu
+            }
+        }
+    }
+
+    @objc private func showWindow() {
+        guard let window = queueWindow else { return }
+        if !window.isVisible {
+            toggleWindow()
+        }
+    }
+
+    @objc private func hideWindow() {
+        guard let window = queueWindow else { return }
+        if window.isVisible {
+            toggleWindow()
+        }
+    }
+
+    @objc private func minimizeWindow() {
+        queueWindow?.miniaturize(nil)
+    }
+
+    @objc private func maximizeWindow() {
+        guard let window = queueWindow else { return }
+        window.zoom(nil)
+    }
+
+    @objc private func showAbout() {
+        NSApp.orderFrontStandardAboutPanel(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func quitApplication() {
+        NSApp.terminate(nil)
+    }
+
+    // MARK: - Dock Icon Handler
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // Toggle window when dock icon is clicked
+        toggleWindow()
+        return true
+    }
+
+    // MARK: - Window Toggle
+
     @objc func toggleWindow() {
         guard let window = queueWindow else { return }
-        
+
         if window.isVisible {
             // Hide window and pause monitoring
             window.orderOut(nil)
@@ -369,7 +490,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    func openPreferences() {
+    @objc func openPreferences() {
         if let window = preferencesWindow {
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)

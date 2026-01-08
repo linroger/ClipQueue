@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import UniformTypeIdentifiers
 
 class ClipboardMonitor {
     private var timer: Timer?
@@ -7,12 +8,18 @@ class ClipboardMonitor {
     private let pasteboard = NSPasteboard.general
     private weak var queueManager: QueueManager?
     private var isMonitoring = false
-    
+    private let imageStorageURL: URL
+
     init(queueManager: QueueManager) {
         self.queueManager = queueManager
         self.lastChangeCount = pasteboard.changeCount
+
+        // Create directory for storing clipboard images
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        self.imageStorageURL = appSupport.appendingPathComponent("ClipQueue/Images", isDirectory: true)
+        try? FileManager.default.createDirectory(at: imageStorageURL, withIntermediateDirectories: true)
     }
-    
+
     func startMonitoring() {
         guard !isMonitoring else { return }
         isMonitoring = true
@@ -28,7 +35,7 @@ class ClipboardMonitor {
         self.timer = timer
         print("📋 Clipboard monitoring started")
     }
-    
+
     func stopMonitoring() {
         guard isMonitoring else { return }
         timer?.invalidate()
@@ -36,24 +43,35 @@ class ClipboardMonitor {
         isMonitoring = false
         print("📋 Clipboard monitoring stopped")
     }
-    
+
     private func checkClipboard() {
         let currentChangeCount = pasteboard.changeCount
-        
+
         // Check if clipboard has changed
         guard currentChangeCount != lastChangeCount else {
             return
         }
-        
+
         lastChangeCount = currentChangeCount
-        
-        // Try to get string content
+
+        let sourceInfo = currentSourceAppInfo()
+
+        // Check for image content first
+        if let imageItem = extractImageItem(sourceInfo: sourceInfo) {
+            DispatchQueue.main.async { [weak self] in
+                self?.queueManager?.addItem(imageItem)
+                SoundManager.shared.playCopySound()
+            }
+            print("📋 Added image to queue")
+            return
+        }
+
+        // Fall back to string content
         guard let content = pasteboard.string(forType: .string),
               !content.isEmpty else {
             return
         }
-        
-        let sourceInfo = currentSourceAppInfo()
+
         let item = ClipboardItem(
             content: content,
             type: determineType(content),
@@ -68,7 +86,77 @@ class ClipboardMonitor {
 
         print("📋 Added to queue: \(item.shortPreview)")
     }
-    
+
+    private func extractImageItem(sourceInfo: (bundleIdentifier: String?, name: String?)) -> ClipboardItem? {
+        // Check for various image types
+        let imageTypes: [NSPasteboard.PasteboardType] = [
+            .tiff,
+            .png,
+            NSPasteboard.PasteboardType("public.jpeg"),
+            NSPasteboard.PasteboardType("public.heic")
+        ]
+
+        for imageType in imageTypes {
+            if let imageData = pasteboard.data(forType: imageType) {
+                return saveImageAndCreateItem(data: imageData, sourceInfo: sourceInfo)
+            }
+        }
+
+        // Check for file URLs that are images
+        if let fileURLs = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
+           let fileURL = fileURLs.first,
+           fileURL.isFileURL {
+            let ext = fileURL.pathExtension.lowercased()
+            let imageExtensions = ["png", "jpg", "jpeg", "gif", "tiff", "heic", "webp", "bmp"]
+            if imageExtensions.contains(ext) {
+                // It's an image file - store the path directly
+                let content = "Image: \(fileURL.lastPathComponent)"
+                return ClipboardItem(
+                    content: content,
+                    type: .image,
+                    sourceAppBundleIdentifier: sourceInfo.bundleIdentifier,
+                    sourceAppName: sourceInfo.name,
+                    imagePath: fileURL.path
+                )
+            }
+        }
+
+        return nil
+    }
+
+    private func saveImageAndCreateItem(data: Data, sourceInfo: (bundleIdentifier: String?, name: String?)) -> ClipboardItem? {
+        // Generate unique filename
+        let filename = "\(UUID().uuidString).png"
+        let fileURL = imageStorageURL.appendingPathComponent(filename)
+
+        // Convert to PNG for consistent storage
+        guard let image = NSImage(data: data),
+              let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+            return nil
+        }
+
+        do {
+            try pngData.write(to: fileURL)
+        } catch {
+            print("⚠️ Failed to save clipboard image: \(error.localizedDescription)")
+            return nil
+        }
+
+        // Create item with image info
+        let dimensions = image.size
+        let content = "Image: \(Int(dimensions.width))×\(Int(dimensions.height))"
+
+        return ClipboardItem(
+            content: content,
+            type: .image,
+            sourceAppBundleIdentifier: sourceInfo.bundleIdentifier,
+            sourceAppName: sourceInfo.name,
+            imagePath: fileURL.path
+        )
+    }
+
     private func determineType(_ content: String) -> ClipboardItem.ItemType {
         // Simple URL detection
         if content.hasPrefix("http://") || content.hasPrefix("https://") {

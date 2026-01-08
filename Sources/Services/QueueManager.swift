@@ -104,6 +104,12 @@ class QueueManager: ObservableObject {
         saveQueue()
     }
 
+    func removeItems(ids: [UUID]) {
+        guard !ids.isEmpty else { return }
+        items.removeAll { ids.contains($0.id) }
+        saveQueue()
+    }
+
     func updateCategory(for item: ClipboardItem, categoryId: UUID?) {
         let updated = item.withCategory(categoryId)
         updateItem(updated)
@@ -111,6 +117,11 @@ class QueueManager: ObservableObject {
 
     func updatePinned(for item: ClipboardItem, pinned: Bool) {
         let updated = item.withPinned(pinned)
+        updateItem(updated)
+    }
+
+    func updateFavorite(for item: ClipboardItem, favorite: Bool) {
+        let updated = item.withFavorite(favorite)
         updateItem(updated)
     }
     
@@ -147,6 +158,14 @@ class QueueManager: ObservableObject {
         let moved = items.remove(at: index)
         items.insert(moved, at: 0)
         saveQueue()
+    }
+
+    // Reverse the order of all items in the queue
+    func reverseQueue() {
+        guard items.count > 1 else { return }
+        items.reverse()
+        saveQueue()
+        print("🔄 Queue order reversed")
     }
 
     // MARK: - Persistence
@@ -187,6 +206,7 @@ final class HistoryStore {
     private let pageSize: Int
     private(set) var items: [ClipboardHistoryEntry] = []
     private(set) var pinnedItems: [ClipboardHistoryEntry] = []
+    private(set) var favoriteItems: [ClipboardHistoryEntry] = []
     private(set) var canLoadMore = true
     private var loadedCount = 0
     private var searchQuery = ""
@@ -197,6 +217,7 @@ final class HistoryStore {
         self.pageSize = pageSize
         loadInitial()
         loadPinned()
+        loadFavorites()
     }
 
     func bootstrap(with queueItems: [ClipboardItem]) {
@@ -210,7 +231,8 @@ final class HistoryStore {
                 sourceAppBundleIdentifier: item.sourceAppBundleIdentifier,
                 sourceAppName: item.sourceAppName,
                 categoryId: item.categoryId,
-                isPinned: item.isPinned
+                isPinned: item.isPinned,
+                isFavorite: item.isFavorite
             )
             modelContext.insert(entry)
         }
@@ -231,7 +253,8 @@ final class HistoryStore {
             sourceAppBundleIdentifier: item.sourceAppBundleIdentifier,
             sourceAppName: item.sourceAppName,
             categoryId: item.categoryId,
-            isPinned: item.isPinned
+            isPinned: item.isPinned,
+            isFavorite: item.isFavorite
         )
         modelContext.insert(entry)
         do {
@@ -245,6 +268,9 @@ final class HistoryStore {
         loadedCount += 1
         if entry.isPinned {
             pinnedItems.insert(entry, at: 0)
+        }
+        if entry.isFavorite {
+            favoriteItems.insert(entry, at: 0)
         }
     }
 
@@ -315,6 +341,17 @@ final class HistoryStore {
         }
     }
 
+    func loadFavorites() {
+        var descriptor = FetchDescriptor<ClipboardHistoryEntry>(
+            predicate: #Predicate { $0.isFavorite == true },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = 500
+        if let fetched = try? modelContext.fetch(descriptor) {
+            favoriteItems = fetched
+        }
+    }
+
     private func fetchEntries(offset: Int, limit: Int) -> [ClipboardHistoryEntry] {
         let query = searchQuery
         var descriptor: FetchDescriptor<ClipboardHistoryEntry>
@@ -367,6 +404,7 @@ final class HistoryStore {
         }
         items.removeAll { $0.id == entry.id }
         pinnedItems.removeAll { $0.id == entry.id }
+        favoriteItems.removeAll { $0.id == entry.id }
         loadedCount = max(0, loadedCount - 1)
     }
 
@@ -389,6 +427,7 @@ final class HistoryStore {
         }
         items.removeAll()
         pinnedItems.removeAll()
+        favoriteItems.removeAll()
         loadedCount = 0
         canLoadMore = false
     }
@@ -408,6 +447,25 @@ final class HistoryStore {
             }
         } else {
             pinnedItems.removeAll { $0.id == entry.id }
+        }
+        items = items
+    }
+
+    func setFavorite(itemId: UUID, favorite: Bool) {
+        guard let entry = fetchEntry(id: itemId) else { return }
+        entry.isFavorite = favorite
+        do {
+            try modelContext.save()
+        } catch {
+            print("⚠️ Failed to update favorite state: \(error.localizedDescription)")
+            return
+        }
+        if favorite {
+            if !favoriteItems.contains(where: { $0.id == entry.id }) {
+                favoriteItems.insert(entry, at: 0)
+            }
+        } else {
+            favoriteItems.removeAll { $0.id == entry.id }
         }
         items = items
     }

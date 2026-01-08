@@ -1,5 +1,7 @@
 import Foundation
 import ServiceManagement
+import AppKit
+import Carbon
 
 enum AppearanceMode: String, CaseIterable, Identifiable {
     case system = "system"
@@ -339,6 +341,40 @@ enum MenuBarIconStyle: String, CaseIterable, Identifiable {
     }
 }
 
+enum QueueTab: String, CaseIterable, Identifiable {
+    case queue
+    case favorites
+    case history
+    case recents
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .queue: return "Queue"
+        case .favorites: return "Favorites"
+        case .history: return "History"
+        case .recents: return "Recents"
+        }
+    }
+}
+
+enum QueuePasteNewlineTrigger: String, CaseIterable, Identifiable {
+    case none = "none"
+    case enter = "enter"
+    case shiftEnter = "shiftEnter"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .none: return "Off"
+        case .enter: return "Enter"
+        case .shiftEnter: return "Shift + Enter"
+        }
+    }
+}
+
 class Preferences: ObservableObject {
     static let shared = Preferences()
     
@@ -365,6 +401,36 @@ class Preferences: ObservableObject {
     @Published var historyEnabled: Bool {
         didSet {
             UserDefaults.standard.set(historyEnabled, forKey: "historyEnabled")
+        }
+    }
+
+    @Published var showHistoryTab: Bool {
+        didSet {
+            UserDefaults.standard.set(showHistoryTab, forKey: "showHistoryTab")
+        }
+    }
+
+    @Published var showFavoritesTab: Bool {
+        didSet {
+            UserDefaults.standard.set(showFavoritesTab, forKey: "showFavoritesTab")
+        }
+    }
+
+    @Published var showRecentsTab: Bool {
+        didSet {
+            UserDefaults.standard.set(showRecentsTab, forKey: "showRecentsTab")
+        }
+    }
+
+    @Published var selectedQueueTab: QueueTab {
+        didSet {
+            UserDefaults.standard.set(selectedQueueTab.rawValue, forKey: "selectedQueueTab")
+        }
+    }
+
+    @Published var returnToQueueOnShow: Bool {
+        didSet {
+            UserDefaults.standard.set(returnToQueueOnShow, forKey: "returnToQueueOnShow")
         }
     }
 
@@ -594,34 +660,52 @@ class Preferences: ObservableObject {
         }
     }
 
+    @Published var appendNewlineAfterPaste: Bool {
+        didSet {
+            UserDefaults.standard.set(appendNewlineAfterPaste, forKey: "appendNewlineAfterPaste")
+        }
+    }
+
+    @Published var queuePasteNewlineTrigger: QueuePasteNewlineTrigger {
+        didSet {
+            UserDefaults.standard.set(queuePasteNewlineTrigger.rawValue, forKey: "queuePasteNewlineTrigger")
+        }
+    }
+
+    @Published var autoResizeWindowHeight: Bool {
+        didSet {
+            UserDefaults.standard.set(autoResizeWindowHeight, forKey: "autoResizeWindowHeight")
+        }
+    }
+
     // Keyboard shortcuts
-    @Published var copyAndRecordShortcut: String {
+    @Published var copyAndRecordShortcut: KeyboardShortcut {
         didSet {
-            UserDefaults.standard.set(copyAndRecordShortcut, forKey: "copyAndRecordShortcut")
+            saveShortcut(copyAndRecordShortcut, key: "copyAndRecordShortcut")
         }
     }
-    
-    @Published var toggleWindowShortcut: String {
+
+    @Published var toggleWindowShortcut: KeyboardShortcut {
         didSet {
-            UserDefaults.standard.set(toggleWindowShortcut, forKey: "toggleWindowShortcut")
+            saveShortcut(toggleWindowShortcut, key: "toggleWindowShortcut")
         }
     }
-    
-    @Published var pasteNextShortcut: String {
+
+    @Published var pasteNextShortcut: KeyboardShortcut {
         didSet {
-            UserDefaults.standard.set(pasteNextShortcut, forKey: "pasteNextShortcut")
+            saveShortcut(pasteNextShortcut, key: "pasteNextShortcut")
         }
     }
-    
-    @Published var pasteAllShortcut: String {
+
+    @Published var pasteAllShortcut: KeyboardShortcut {
         didSet {
-            UserDefaults.standard.set(pasteAllShortcut, forKey: "pasteAllShortcut")
+            saveShortcut(pasteAllShortcut, key: "pasteAllShortcut")
         }
     }
-    
-    @Published var clearAllShortcut: String {
+
+    @Published var clearAllShortcut: KeyboardShortcut {
         didSet {
-            UserDefaults.standard.set(clearAllShortcut, forKey: "clearAllShortcut")
+            saveShortcut(clearAllShortcut, key: "clearAllShortcut")
         }
     }
 
@@ -702,6 +786,21 @@ class Preferences: ObservableObject {
 
         let savedHistory = UserDefaults.standard.object(forKey: "historyEnabled")
         self.historyEnabled = savedHistory == nil ? true : UserDefaults.standard.bool(forKey: "historyEnabled")
+
+        let savedShowHistoryTab = UserDefaults.standard.object(forKey: "showHistoryTab")
+        self.showHistoryTab = savedShowHistoryTab == nil ? true : UserDefaults.standard.bool(forKey: "showHistoryTab")
+
+        let savedShowFavoritesTab = UserDefaults.standard.object(forKey: "showFavoritesTab")
+        self.showFavoritesTab = savedShowFavoritesTab == nil ? true : UserDefaults.standard.bool(forKey: "showFavoritesTab")
+
+        let savedShowRecentsTab = UserDefaults.standard.object(forKey: "showRecentsTab")
+        self.showRecentsTab = savedShowRecentsTab == nil ? true : UserDefaults.standard.bool(forKey: "showRecentsTab")
+
+        let savedSelectedTab = UserDefaults.standard.string(forKey: "selectedQueueTab") ?? QueueTab.queue.rawValue
+        self.selectedQueueTab = QueueTab(rawValue: savedSelectedTab) ?? .queue
+
+        let savedReturnToQueue = UserDefaults.standard.object(forKey: "returnToQueueOnShow")
+        self.returnToQueueOnShow = savedReturnToQueue == nil ? false : UserDefaults.standard.bool(forKey: "returnToQueueOnShow")
 
         let savedIcons = UserDefaults.standard.object(forKey: "showAppIcons")
         self.showAppIcons = savedIcons == nil ? true : UserDefaults.standard.bool(forKey: "showAppIcons")
@@ -793,20 +892,70 @@ class Preferences: ObservableObject {
         self.showTimestamps = savedTimestamps == nil ? true : UserDefaults.standard.bool(forKey: "showTimestamps")
 
         self.playSoundEffects = UserDefaults.standard.bool(forKey: "playSoundEffects")
-        self.autoClearAfterPaste = UserDefaults.standard.bool(forKey: "autoClearAfterPaste")
+
+        // Remove after pasting defaults to true (the user's preferred behavior)
+        let savedAutoClear = UserDefaults.standard.object(forKey: "autoClearAfterPaste")
+        self.autoClearAfterPaste = savedAutoClear == nil ? true : UserDefaults.standard.bool(forKey: "autoClearAfterPaste")
 
         let savedSkipDupes = UserDefaults.standard.object(forKey: "skipDuplicates")
         self.skipDuplicates = savedSkipDupes == nil ? true : UserDefaults.standard.bool(forKey: "skipDuplicates")
 
         self.showCharacterCount = UserDefaults.standard.bool(forKey: "showCharacterCount")
         self.confirmBeforeClear = UserDefaults.standard.bool(forKey: "confirmBeforeClear")
+        self.appendNewlineAfterPaste = UserDefaults.standard.bool(forKey: "appendNewlineAfterPaste")
+
+        let savedQueueNewline = UserDefaults.standard.string(forKey: "queuePasteNewlineTrigger") ?? QueuePasteNewlineTrigger.none.rawValue
+        self.queuePasteNewlineTrigger = QueuePasteNewlineTrigger(rawValue: savedQueueNewline) ?? .none
+
+        let savedAutoResize = UserDefaults.standard.object(forKey: "autoResizeWindowHeight")
+        self.autoResizeWindowHeight = savedAutoResize == nil ? false : UserDefaults.standard.bool(forKey: "autoResizeWindowHeight")
 
         // Load shortcuts or use defaults
-        self.copyAndRecordShortcut = UserDefaults.standard.string(forKey: "copyAndRecordShortcut") ?? "⌃Q"
-        self.toggleWindowShortcut = UserDefaults.standard.string(forKey: "toggleWindowShortcut") ?? "⌃⌥⌘C"
-        self.pasteNextShortcut = UserDefaults.standard.string(forKey: "pasteNextShortcut") ?? "⌃W"
-        self.pasteAllShortcut = UserDefaults.standard.string(forKey: "pasteAllShortcut") ?? "⌃E"
-        self.clearAllShortcut = UserDefaults.standard.string(forKey: "clearAllShortcut") ?? "⌃X"
+        self.copyAndRecordShortcut = Self.loadShortcut(
+            key: "copyAndRecordShortcut",
+            legacyKey: "copyAndRecordShortcut",
+            fallback: KeyboardShortcut(
+                keyCode: UInt16(kVK_ANSI_Q),
+                modifiers: NSEvent.ModifierFlags.control.rawValue,
+                keyEquivalent: "q"
+            )
+        )
+        self.toggleWindowShortcut = Self.loadShortcut(
+            key: "toggleWindowShortcut",
+            legacyKey: "toggleWindowShortcut",
+            fallback: KeyboardShortcut(
+                keyCode: UInt16(kVK_ANSI_C),
+                modifiers: NSEvent.ModifierFlags([.control, .option, .command]).rawValue,
+                keyEquivalent: "c"
+            )
+        )
+        self.pasteNextShortcut = Self.loadShortcut(
+            key: "pasteNextShortcut",
+            legacyKey: "pasteNextShortcut",
+            fallback: KeyboardShortcut(
+                keyCode: UInt16(kVK_ANSI_W),
+                modifiers: NSEvent.ModifierFlags.control.rawValue,
+                keyEquivalent: "w"
+            )
+        )
+        self.pasteAllShortcut = Self.loadShortcut(
+            key: "pasteAllShortcut",
+            legacyKey: "pasteAllShortcut",
+            fallback: KeyboardShortcut(
+                keyCode: UInt16(kVK_ANSI_E),
+                modifiers: NSEvent.ModifierFlags.control.rawValue,
+                keyEquivalent: "e"
+            )
+        )
+        self.clearAllShortcut = Self.loadShortcut(
+            key: "clearAllShortcut",
+            legacyKey: "clearAllShortcut",
+            fallback: KeyboardShortcut(
+                keyCode: UInt16(kVK_ANSI_X),
+                modifiers: NSEvent.ModifierFlags.control.rawValue,
+                keyEquivalent: "x"
+            )
+        )
 
         // Sound effects
         let savedCopySound = UserDefaults.standard.string(forKey: "copySoundEffect") ?? "tink"
@@ -840,6 +989,11 @@ class Preferences: ObservableObject {
         keepWindowOnTop = true
         showInMenuBar = true
         historyEnabled = true
+        showHistoryTab = true
+        showFavoritesTab = true
+        showRecentsTab = true
+        selectedQueueTab = .queue
+        returnToQueueOnShow = false
         showAppIcons = true
         pauseMonitoringWhenHidden = false
         animationSpeed = 1.0
@@ -874,15 +1028,38 @@ class Preferences: ObservableObject {
         doubleClickAction = .copy
         showTimestamps = true
         playSoundEffects = false
-        autoClearAfterPaste = false
+        autoClearAfterPaste = true  // Default to removing items after paste
         skipDuplicates = true
         showCharacterCount = false
         confirmBeforeClear = false
-        copyAndRecordShortcut = "⌃Q"
-        toggleWindowShortcut = "⌃⌥⌘C"
-        pasteNextShortcut = "⌃W"
-        pasteAllShortcut = "⌃E"
-        clearAllShortcut = "⌃X"
+        appendNewlineAfterPaste = false
+        queuePasteNewlineTrigger = .none
+        autoResizeWindowHeight = false
+        copyAndRecordShortcut = KeyboardShortcut(
+            keyCode: UInt16(kVK_ANSI_Q),
+            modifiers: NSEvent.ModifierFlags.control.rawValue,
+            keyEquivalent: "q"
+        )
+        toggleWindowShortcut = KeyboardShortcut(
+            keyCode: UInt16(kVK_ANSI_C),
+            modifiers: NSEvent.ModifierFlags([.control, .option, .command]).rawValue,
+            keyEquivalent: "c"
+        )
+        pasteNextShortcut = KeyboardShortcut(
+            keyCode: UInt16(kVK_ANSI_W),
+            modifiers: NSEvent.ModifierFlags.control.rawValue,
+            keyEquivalent: "w"
+        )
+        pasteAllShortcut = KeyboardShortcut(
+            keyCode: UInt16(kVK_ANSI_E),
+            modifiers: NSEvent.ModifierFlags.control.rawValue,
+            keyEquivalent: "e"
+        )
+        clearAllShortcut = KeyboardShortcut(
+            keyCode: UInt16(kVK_ANSI_X),
+            modifiers: NSEvent.ModifierFlags.control.rawValue,
+            keyEquivalent: "x"
+        )
         // Sound effects
         copySoundEffect = .tink
         pasteSoundEffect = .pop
@@ -898,5 +1075,104 @@ class Preferences: ObservableObject {
         // Mini mode
         miniModeEnabled = false
         miniModeShortcut = "⌃⌥M"
+    }
+
+    private func saveShortcut(_ shortcut: KeyboardShortcut, key: String) {
+        if let data = try? JSONEncoder().encode(shortcut) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    private static func loadShortcut(key: String, legacyKey: String, fallback: KeyboardShortcut) -> KeyboardShortcut {
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode(KeyboardShortcut.self, from: data) {
+            return decoded
+        }
+
+        if let legacy = UserDefaults.standard.string(forKey: legacyKey),
+           let parsed = parseLegacyShortcut(legacy) {
+            return parsed
+        }
+
+        return fallback
+    }
+
+    private static func parseLegacyShortcut(_ legacy: String) -> KeyboardShortcut? {
+        var modifiers: NSEvent.ModifierFlags = []
+        var keyString = legacy
+
+        let symbols: [(String, NSEvent.ModifierFlags)] = [
+            ("⌃", .control),
+            ("⌥", .option),
+            ("⇧", .shift),
+            ("⌘", .command)
+        ]
+
+        for (symbol, flag) in symbols {
+            if keyString.contains(symbol) {
+                modifiers.insert(flag)
+                keyString = keyString.replacingOccurrences(of: symbol, with: "")
+            }
+        }
+
+        let trimmedKey = keyString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let keyCode = legacyKeyCode(for: trimmedKey) else { return nil }
+
+        return KeyboardShortcut(
+            keyCode: keyCode,
+            modifiers: modifiers.rawValue,
+            keyEquivalent: trimmedKey.lowercased()
+        )
+    }
+
+    private static func legacyKeyCode(for key: String) -> UInt16? {
+        if key.count == 1, let scalar = key.uppercased().unicodeScalars.first {
+            switch scalar {
+            case "A": return UInt16(kVK_ANSI_A)
+            case "B": return UInt16(kVK_ANSI_B)
+            case "C": return UInt16(kVK_ANSI_C)
+            case "D": return UInt16(kVK_ANSI_D)
+            case "E": return UInt16(kVK_ANSI_E)
+            case "F": return UInt16(kVK_ANSI_F)
+            case "G": return UInt16(kVK_ANSI_G)
+            case "H": return UInt16(kVK_ANSI_H)
+            case "I": return UInt16(kVK_ANSI_I)
+            case "J": return UInt16(kVK_ANSI_J)
+            case "K": return UInt16(kVK_ANSI_K)
+            case "L": return UInt16(kVK_ANSI_L)
+            case "M": return UInt16(kVK_ANSI_M)
+            case "N": return UInt16(kVK_ANSI_N)
+            case "O": return UInt16(kVK_ANSI_O)
+            case "P": return UInt16(kVK_ANSI_P)
+            case "Q": return UInt16(kVK_ANSI_Q)
+            case "R": return UInt16(kVK_ANSI_R)
+            case "S": return UInt16(kVK_ANSI_S)
+            case "T": return UInt16(kVK_ANSI_T)
+            case "U": return UInt16(kVK_ANSI_U)
+            case "V": return UInt16(kVK_ANSI_V)
+            case "W": return UInt16(kVK_ANSI_W)
+            case "X": return UInt16(kVK_ANSI_X)
+            case "Y": return UInt16(kVK_ANSI_Y)
+            case "Z": return UInt16(kVK_ANSI_Z)
+            case "0": return UInt16(kVK_ANSI_0)
+            case "1": return UInt16(kVK_ANSI_1)
+            case "2": return UInt16(kVK_ANSI_2)
+            case "3": return UInt16(kVK_ANSI_3)
+            case "4": return UInt16(kVK_ANSI_4)
+            case "5": return UInt16(kVK_ANSI_5)
+            case "6": return UInt16(kVK_ANSI_6)
+            case "7": return UInt16(kVK_ANSI_7)
+            case "8": return UInt16(kVK_ANSI_8)
+            case "9": return UInt16(kVK_ANSI_9)
+            default: break
+            }
+        }
+
+        switch key.lowercased() {
+        case "tab": return UInt16(kVK_Tab)
+        case "return", "enter": return UInt16(kVK_Return)
+        case "space": return UInt16(kVK_Space)
+        default: return nil
+        }
     }
 }

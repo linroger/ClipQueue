@@ -94,6 +94,12 @@ struct GeneralPreferencesView: View {
                     Text("Display a badge with the number of items in the queue.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    Toggle("Auto-resize window height to queue size", isOn: $preferences.autoResizeWindowHeight)
+
+                    Text("Shrink the window when the queue has only a few items.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Divider()
@@ -198,6 +204,23 @@ struct GeneralPreferencesView: View {
 
                 Divider()
 
+                // MARK: - Tabs
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Tabs")
+                        .font(.headline)
+
+                    Toggle("Show Favorites tab", isOn: $preferences.showFavoritesTab)
+                    Toggle("Show History tab", isOn: $preferences.showHistoryTab)
+                    Toggle("Show Recents tab", isOn: $preferences.showRecentsTab)
+                    Toggle("Return to Queue when opening window", isOn: $preferences.returnToQueueOnShow)
+
+                    Text("When all tabs are visible, Queue and Favorites appear at the top and History and Recents at the bottom.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Divider()
+
                 // MARK: - Limits
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Limits")
@@ -292,10 +315,17 @@ struct ShortcutsPreferencesView: View {
             
             Divider()
             
-            HStack(alignment: .top, spacing: 12) {
-                Text("Note: Changes to shortcuts require restarting ClipQueue to take effect.")
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Changes apply immediately. Click any shortcut button, then press your desired key combination.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+
+                Text("Note: Shortcuts with only Shift (or no modifiers) may conflict with normal typing. Using Control, Option, or Command is recommended for reliability.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack {
                 Spacer()
                 Button("Reset to Defaults") {
                     preferences.resetToDefaults()
@@ -311,7 +341,7 @@ struct ShortcutsPreferencesView: View {
 
 struct ShortcutRow: View {
     let label: String
-    @Binding var shortcut: String
+    @Binding var shortcut: KeyboardShortcut
     let description: String
     @State private var isRecording = false
     
@@ -323,9 +353,13 @@ struct ShortcutRow: View {
             Button(action: {
                 isRecording.toggle()
             }) {
-                ShortcutKeyView(text: shortcut, isRecording: isRecording)
+                ShortcutKeyView(text: shortcut.displayString, isRecording: isRecording)
             }
             .buttonStyle(.plain)
+            .background(
+                ShortcutRecorderView(shortcut: $shortcut, isRecording: $isRecording)
+                    .frame(width: 0, height: 0)
+            )
             
             if isRecording {
                 Text("Press keys…")
@@ -362,6 +396,59 @@ struct ShortcutKeyView: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .strokeBorder(Color(NSColor.separatorColor).opacity(0.6))
             )
+    }
+}
+
+struct ShortcutRecorderView: NSViewRepresentable {
+    @Binding var shortcut: KeyboardShortcut
+    @Binding var isRecording: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(shortcut: $shortcut, isRecording: $isRecording)
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        NSView(frame: .zero)
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if isRecording {
+            context.coordinator.startMonitoring()
+        } else {
+            context.coordinator.stopMonitoring()
+        }
+    }
+
+    final class Coordinator {
+        private var monitor: Any?
+        private var shortcut: Binding<KeyboardShortcut>
+        private var isRecording: Binding<Bool>
+
+        init(shortcut: Binding<KeyboardShortcut>, isRecording: Binding<Bool>) {
+            self.shortcut = shortcut
+            self.isRecording = isRecording
+        }
+
+        func startMonitoring() {
+            guard monitor == nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                guard let self else { return event }
+                if event.keyCode == 53 { // Escape cancels recording
+                    self.isRecording.wrappedValue = false
+                    return nil
+                }
+                self.shortcut.wrappedValue = KeyboardShortcut.from(event: event)
+                self.isRecording.wrappedValue = false
+                return nil
+            }
+        }
+
+        func stopMonitoring() {
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+        }
     }
 }
 
@@ -428,6 +515,28 @@ struct BehaviorPreferencesView: View {
                     Text("Pastes plain text without rich text formatting.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    Toggle("Append newline after paste", isOn: $preferences.appendNewlineAfterPaste)
+
+                    Text("Adds a line break after pasted text.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack {
+                        Text("Queue paste newline")
+                            .frame(width: 140, alignment: .leading)
+                        Picker("", selection: $preferences.queuePasteNewlineTrigger) {
+                            ForEach(QueuePasteNewlineTrigger.allCases) { trigger in
+                                Text(trigger.displayName).tag(trigger)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                    }
+
+                    Text("Choose which key adds a newline when pasting from the queue.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Divider()
@@ -438,7 +547,12 @@ struct BehaviorPreferencesView: View {
                         .font(.headline)
 
                     Toggle("Skip duplicate items", isOn: $preferences.skipDuplicates)
-                    Toggle("Auto-clear item after pasting", isOn: $preferences.autoClearAfterPaste)
+                    Toggle("Remove item from queue after pasting", isOn: $preferences.autoClearAfterPaste)
+
+                    Text("When enabled, items are removed from the queue after being pasted.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     Toggle("Confirm before clearing all", isOn: $preferences.confirmBeforeClear)
 
                     Text("Control how clipboard items are captured and managed.")
