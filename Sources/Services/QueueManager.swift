@@ -481,6 +481,35 @@ final class HistoryStore {
         items = items
     }
 
+    func markAsPasted(itemIds: [UUID]) {
+        let now = Date()
+        for itemId in itemIds {
+            guard let entry = fetchEntry(id: itemId) else { continue }
+            entry.lastPastedDate = now
+        }
+        do {
+            try modelContext.save()
+        } catch {
+            print("⚠️ Failed to mark items as pasted: \(error.localizedDescription)")
+        }
+    }
+
+    var recentlyPastedItems: [ClipboardHistoryEntry] {
+        var descriptor = FetchDescriptor<ClipboardHistoryEntry>(
+            predicate: #Predicate { entry in
+                entry.lastPastedDate != nil
+            },
+            sortBy: [SortDescriptor(\.lastPastedDate, order: .reverse)]
+        )
+        descriptor.fetchLimit = 100
+        do {
+            return try modelContext.fetch(descriptor)
+        } catch {
+            print("⚠️ Failed to fetch recently pasted items: \(error.localizedDescription)")
+            return []
+        }
+    }
+
     private func fetchEntry(id: UUID) -> ClipboardHistoryEntry? {
         var descriptor = FetchDescriptor<ClipboardHistoryEntry>(
             predicate: #Predicate { $0.id == id }

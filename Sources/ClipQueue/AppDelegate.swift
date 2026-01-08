@@ -241,25 +241,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let contentFont = NSFont.preferredFont(forTextStyle: .callout).pointSize * textScale
         let metaFont = NSFont.preferredFont(forTextStyle: .caption2).pointSize * textScale
 
-        let rowTextHeight = contentFont * CGFloat(previewLines) + metaFont + density.contentSpacing
-        let rowHeight = rowTextHeight + density.verticalPadding * 2
+        // Calculate row height components
+        let lineHeightMultiplier: CGFloat = 1.2 // Standard line height multiplier
+        let contentTextHeight = (contentFont * lineHeightMultiplier) * CGFloat(previewLines)
+        let metaLineHeight = metaFont * lineHeightMultiplier
+        let rowTextHeight = contentTextHeight + metaLineHeight + density.contentSpacing
+        let rowHeight = rowTextHeight + (density.verticalPadding * 2)
+
+        // Row spacing in List
         let rowSpacing: CGFloat = 4
 
-        let headerHeight: CGFloat = 48  // Toolbar with tabs and actions
-        let footerHeight: CGFloat = 44  // Bottom controls
-        let listPadding: CGFloat = 16   // Top and bottom padding within scroll view
+        // Window chrome components
+        let headerHeight: CGFloat = 48  // GlassBar with tabs and search
+        let footerHeight: CGFloat = 44  // GlassBar with settings and actions
+        let scrollViewPadding: CGFloat = 8  // List .padding(8) in QueueView
+        let listTopBottomSpace: CGFloat = 8  // Additional List internal spacing
 
-        // Empty state: just enough for header, footer, and empty message
+        // Empty state
         if itemCount <= 0 {
-            let emptyStateHeight: CGFloat = 100  // Space for "No items" message
+            let emptyStateHeight: CGFloat = 120
             return headerHeight + footerHeight + emptyStateHeight
         }
 
-        // Calculate total height needed for all rows plus spacing between them
+        // Calculate total rows height with spacing
         let totalRowsHeight = (rowHeight * CGFloat(itemCount)) + (rowSpacing * CGFloat(max(0, itemCount - 1)))
 
-        // Add all components: header + padding + rows + padding + footer
-        let totalHeight = headerHeight + listPadding + totalRowsHeight + listPadding + footerHeight
+        // Add all components with proper accounting for all spacing
+        let totalContentHeight = scrollViewPadding + totalRowsHeight + scrollViewPadding + listTopBottomSpace
+        let totalHeight = headerHeight + totalContentHeight + footerHeight
 
         return totalHeight
     }
@@ -705,6 +714,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Store content to avoid re-adding when pasted
         if removeFromQueue, !itemIds.isEmpty {
             queueManager?.removeItems(ids: itemIds)
+        }
+
+        // Mark items as pasted in history
+        if !itemIds.isEmpty {
+            Task { @MainActor in
+                historyStore?.markAsPasted(itemIds: itemIds)
+            }
         }
 
         // Play paste sound effect

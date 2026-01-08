@@ -1065,7 +1065,7 @@ struct RecentsListView: View {
 
     private var recentEntries: [ClipboardHistoryEntry] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let items = historyStore.items
+        let items = historyStore.recentlyPastedItems
         let filtered = query.isEmpty ? items : items.filter { $0.content.localizedCaseInsensitiveContains(query) }
         return Array(filtered.prefix(50))
     }

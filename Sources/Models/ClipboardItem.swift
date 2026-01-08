@@ -204,6 +204,7 @@ final class ClipboardHistoryEntry {
     var isPinned: Bool
     var isFavorite: Bool
     var imagePath: String?
+    var lastPastedDate: Date?
 
     init(
         id: UUID = UUID(),
@@ -215,7 +216,8 @@ final class ClipboardHistoryEntry {
         categoryId: UUID? = nil,
         isPinned: Bool = false,
         isFavorite: Bool = false,
-        imagePath: String? = nil
+        imagePath: String? = nil,
+        lastPastedDate: Date? = nil
     ) {
         self.id = id
         self.content = content
@@ -227,6 +229,7 @@ final class ClipboardHistoryEntry {
         self.isPinned = isPinned
         self.isFavorite = isFavorite
         self.imagePath = imagePath
+        self.lastPastedDate = lastPastedDate
     }
 
     var preview: String {

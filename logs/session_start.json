@@ -26,5 +26,411 @@
     "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
     "hook_event_name": "SessionStart",
     "source": "startup"
+  },
+  {
+    "session_id": "3799d6a0-c834-4061-9f1f-a15fa6b792d5",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/3799d6a0-c834-4061-9f1f-a15fa6b792d5.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "07404a57-9f92-427f-98d3-51ad58829836",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/07404a57-9f92-427f-98d3-51ad58829836.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "ae68bddc-0eb2-4b4c-aaed-673ce4572093",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/ae68bddc-0eb2-4b4c-aaed-673ce4572093.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "d118d7e8-f661-4e94-851d-3ec9e7262324",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/d118d7e8-f661-4e94-851d-3ec9e7262324.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "288360d8-5a9d-4592-aa96-056f53f4fdf2",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/288360d8-5a9d-4592-aa96-056f53f4fdf2.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "bc0467b3-7f70-4ed3-a5f4-6ee4fd589586",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/bc0467b3-7f70-4ed3-a5f4-6ee4fd589586.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "30c3da8e-d617-4dd2-b620-0534b2efca65",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/30c3da8e-d617-4dd2-b620-0534b2efca65.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "b64b30b3-334c-40d4-8791-26c8db8b6e13",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/b64b30b3-334c-40d4-8791-26c8db8b6e13.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "b64b30b3-334c-40d4-8791-26c8db8b6e13",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/b64b30b3-334c-40d4-8791-26c8db8b6e13.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "b64b30b3-334c-40d4-8791-26c8db8b6e13",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/b64b30b3-334c-40d4-8791-26c8db8b6e13.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "b64b30b3-334c-40d4-8791-26c8db8b6e13",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/b64b30b3-334c-40d4-8791-26c8db8b6e13.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "resume"
+  },
+  {
+    "session_id": "7a2edc64-1839-4b9d-952d-6884a8253133",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7a2edc64-1839-4b9d-952d-6884a8253133.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "7a2edc64-1839-4b9d-952d-6884a8253133",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7a2edc64-1839-4b9d-952d-6884a8253133.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "7a2edc64-1839-4b9d-952d-6884a8253133",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7a2edc64-1839-4b9d-952d-6884a8253133.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "7a2edc64-1839-4b9d-952d-6884a8253133",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7a2edc64-1839-4b9d-952d-6884a8253133.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "7a2edc64-1839-4b9d-952d-6884a8253133",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/7a2edc64-1839-4b9d-952d-6884a8253133.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "compact"
+  },
+  {
+    "session_id": "9979fe83-b99e-45fa-a3dd-8b62a4be3aa4",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-Downloads-ClipQueue-main-2/9979fe83-b99e-45fa-a3dd-8b62a4be3aa4.jsonl",
+    "cwd": "/Users/rogerlin/Downloads/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "3bbeef80-5ae7-4a9d-9560-2bc5a6471503",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-XCode-Projects-ClipQueue-main-2/3bbeef80-5ae7-4a9d-9560-2bc5a6471503.jsonl",
+    "cwd": "/Users/rogerlin/XCode-Projects/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "3d753cfc-16be-481b-84ba-e0dba6f3dacd",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-XCode-Projects-ClipQueue-main-2/3d753cfc-16be-481b-84ba-e0dba6f3dacd.jsonl",
+    "cwd": "/Users/rogerlin/XCode-Projects/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "6c197a49-a455-4f25-a647-d76684ca37ae",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-XCode-Projects-ClipQueue-main-2/6c197a49-a455-4f25-a647-d76684ca37ae.jsonl",
+    "cwd": "/Users/rogerlin/XCode-Projects/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
+  },
+  {
+    "session_id": "6ef6e19e-cd83-41f7-8caf-7c8468b90084",
+    "transcript_path": "/Users/rogerlin/.claude/projects/-Users-rogerlin-XCode-Projects-ClipQueue-main-2/6ef6e19e-cd83-41f7-8caf-7c8468b90084.jsonl",
+    "cwd": "/Users/rogerlin/XCode-Projects/ClipQueue-main-2",
+    "hook_event_name": "SessionStart",
+    "source": "startup"
   }
 ]
