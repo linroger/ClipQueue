@@ -231,10 +231,14 @@ struct QueueView: View {
                     }
                 }
                 .onChange(of: selectedQueueIDs) { oldValue, newValue in
-                    updateSelectionOrder(previous: oldValue, current: newValue)
+                    Task { @MainActor in
+                        updateSelectionOrder(previous: oldValue, current: newValue)
+                    }
                 }
                 .onChange(of: queueManager.items) { _, newItems in
-                    syncSelection(with: newItems)
+                    Task { @MainActor in
+                        syncSelection(with: newItems)
+                    }
                 }
             }
         }

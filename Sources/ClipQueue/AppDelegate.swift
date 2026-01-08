@@ -553,7 +553,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func updateMenuBarIcon() {
         guard let button = statusItem?.button else {
-            print("⚠️ Menu bar button not available")
+            // Button not ready yet - will be called again when prefs change after setup
             return
         }
 
