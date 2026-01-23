@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import UniformTypeIdentifiers
+import UserNotifications
 
 class ClipboardMonitor {
     private var timer: Timer?
@@ -18,6 +19,15 @@ class ClipboardMonitor {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         self.imageStorageURL = appSupport.appendingPathComponent("ClipQueue/Images", isDirectory: true)
         try? FileManager.default.createDirectory(at: imageStorageURL, withIntermediateDirectories: true)
+
+        // Request notification permissions
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error {
+                print("⚠️ Notification permission error: \(error.localizedDescription)")
+            } else if granted {
+                print("✅ Notification permission granted")
+            }
+        }
     }
 
     func startMonitoring() {
@@ -61,16 +71,27 @@ class ClipboardMonitor {
             DispatchQueue.main.async { [weak self] in
                 self?.queueManager?.addItem(imageItem)
                 SoundManager.shared.playCopySound()
+                // Show notification if enabled
+                self?.sendCopyNotification(for: imageItem)
             }
             print("📋 Added image to queue")
             return
         }
 
         // Fall back to string content
-        guard let content = pasteboard.string(forType: .string),
-              !content.isEmpty else {
+        guard let rawContent = pasteboard.string(forType: .string),
+              !rawContent.isEmpty else {
             return
         }
+
+        // Process content according to preferences
+        var content = rawContent
+        if Preferences.shared.trimWhitespace {
+            content = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        // Skip empty content after trimming
+        guard !content.isEmpty else { return }
 
         let item = ClipboardItem(
             content: content,
@@ -82,6 +103,8 @@ class ClipboardMonitor {
             self?.queueManager?.addItem(item)
             // Play copy sound effect
             SoundManager.shared.playCopySound()
+            // Show notification if enabled
+            self?.sendCopyNotification(for: item)
         }
 
         print("📋 Added to queue: \(item.shortPreview)")
@@ -173,5 +196,24 @@ class ClipboardMonitor {
             return (nil, nil)
         }
         return (frontmost.bundleIdentifier, frontmost.localizedName)
+    }
+
+    private func sendCopyNotification(for item: ClipboardItem) {
+        guard Preferences.shared.notifyOnCopy else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Copied to Queue"
+        content.body = item.shortPreview
+        if let appName = item.sourceAppName {
+            content.subtitle = "from \(appName)"
+        }
+        content.sound = nil // We already play a sound effect
+
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("⚠️ Failed to show notification: \(error.localizedDescription)")
+            }
+        }
     }
 }

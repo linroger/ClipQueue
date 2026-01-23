@@ -5,8 +5,15 @@ import SwiftData
 import Observation
 
 class QueueManager: ObservableObject {
-    @Published var items: [ClipboardItem] = []
-    
+    @Published var items: [ClipboardItem] = [] {
+        didSet {
+            // Force SwiftUI to notice the change
+            updateTrigger += 1
+        }
+    }
+    @Published var undoStack: [ClipboardItem] = []
+    @Published var updateTrigger: Int = 0
+
     private let userDefaultsKey = "clipQueueItems"
     private var lastPastedContent: String?
     private let historyStore: HistoryStore?
@@ -31,16 +38,28 @@ class QueueManager: ObservableObject {
             return
         }
 
-        // Add to end (newest position) - allow duplicates
-        items.append(item)
-        recordHistory(item)
+        // Skip duplicates if preference is enabled
+        if Preferences.shared.skipDuplicates {
+            if items.contains(where: { $0.content == item.content }) {
+                print("⏭️ Skipped duplicate item: \(item.shortPreview)")
+                return
+            }
+        }
+
+        // Create new array and assign to trigger SwiftUI update
+        var newItems = items
+        newItems.append(item)
 
         // Enforce max queue size limit
         let maxSize = Preferences.shared.maxQueueSize
-        while items.count > maxSize {
-            items.removeFirst()
+        while newItems.count > maxSize {
+            newItems.removeFirst()
         }
 
+        // Assign new array to trigger @Published change
+        items = newItems
+
+        recordHistory(item)
         saveQueue()
     }
     
@@ -49,18 +68,21 @@ class QueueManager: ObservableObject {
         guard !items.isEmpty else {
             return nil
         }
-        
+
         // Get the first item (oldest - FIFO)
-        let item = items.removeFirst()
-        
+        let item = items.first!
+
+        // Create new array without the first item
+        items = Array(items.dropFirst())
+
         // Copy to clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(item.content, forType: .string)
-        
+
         // Remember what we pasted to avoid re-adding it
         lastPastedContent = item.content
-        
+
         saveQueue()
 
         // Play paste sound effect
@@ -76,20 +98,20 @@ class QueueManager: ObservableObject {
         guard !items.isEmpty else {
             return
         }
-        
+
         // Concatenate all items with newlines
         let allContent = items.map { $0.content }.joined(separator: "\n")
-        
+
         // Copy to clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(allContent, forType: .string)
-        
+
         // Remember to avoid re-adding
         lastPastedContent = allContent
-        
-        // Clear the queue
-        items.removeAll()
+
+        // Clear the queue by assigning empty array
+        items = []
         saveQueue()
 
         // Play paste sound effect
@@ -100,14 +122,43 @@ class QueueManager: ObservableObject {
     
     // Remove a specific item
     func removeItem(_ item: ClipboardItem) {
-        items.removeAll { $0.id == item.id }
+        items = items.filter { $0.id != item.id }
         saveQueue()
     }
 
-    func removeItems(ids: [UUID]) {
+    func removeItems(ids: [UUID], saveToUndo: Bool = false) {
         guard !ids.isEmpty else { return }
-        items.removeAll { ids.contains($0.id) }
+
+        // Save removed items to undo stack if requested (e.g., for paste operations)
+        if saveToUndo {
+            let removedItems = items.filter { ids.contains($0.id) }
+            undoStack = removedItems  // Replace undo stack with latest removed items
+        }
+
+        items = items.filter { !ids.contains($0.id) }
         saveQueue()
+    }
+
+    // Restore items from undo stack back to the queue
+    func undoLastPaste() {
+        guard !undoStack.isEmpty else { return }
+
+        let restoredCount = undoStack.count
+
+        // Add items back to the queue in their original order
+        items = items + undoStack
+
+        // Record items in history
+        for item in undoStack {
+            recordHistory(item)
+        }
+
+        // Clear the undo stack
+        undoStack = []
+
+        saveQueue()
+
+        print("↩️ Restored \(restoredCount) item(s) from undo")
     }
 
     func updateCategory(for item: ClipboardItem, categoryId: UUID?) {
@@ -128,13 +179,15 @@ class QueueManager: ObservableObject {
     // Remove item at specific index
     func removeItem(at index: Int) {
         guard index >= 0 && index < items.count else { return }
-        items.remove(at: index)
+        var newItems = items
+        newItems.remove(at: index)
+        items = newItems
         saveQueue()
     }
-    
+
     // Clear all items
     func clearQueue() {
-        items.removeAll()
+        items = []
         saveQueue()
         print("🗑️ Queue cleared")
     }
@@ -146,8 +199,10 @@ class QueueManager: ObservableObject {
             return
         }
 
-        let item = items.remove(at: source)
-        items.insert(item, at: destination)
+        var newItems = items
+        let item = newItems.remove(at: source)
+        newItems.insert(item, at: destination)
+        items = newItems
         saveQueue()
     }
 
@@ -155,15 +210,17 @@ class QueueManager: ObservableObject {
     func moveToTop(_ item: ClipboardItem) {
         guard let index = items.firstIndex(where: { $0.id == item.id }),
               index > 0 else { return }
-        let moved = items.remove(at: index)
-        items.insert(moved, at: 0)
+        var newItems = items
+        let moved = newItems.remove(at: index)
+        newItems.insert(moved, at: 0)
+        items = newItems
         saveQueue()
     }
 
     // Reverse the order of all items in the queue
     func reverseQueue() {
         guard items.count > 1 else { return }
-        items.reverse()
+        items = items.reversed()
         saveQueue()
         print("🔄 Queue order reversed")
     }
@@ -185,7 +242,9 @@ class QueueManager: ObservableObject {
 
     private func updateItem(_ updated: ClipboardItem) {
         guard let index = items.firstIndex(where: { $0.id == updated.id }) else { return }
-        items[index] = updated
+        var newItems = items
+        newItems[index] = updated
+        items = newItems
         saveQueue()
     }
 

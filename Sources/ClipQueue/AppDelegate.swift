@@ -192,6 +192,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.updateQueueWindowHeight()
         }.store(in: &cancellables)
 
+        // Observe keepWindowOnTop preference
+        Preferences.shared.$keepWindowOnTop.sink { [weak self] keepOnTop in
+            self?.queueWindow?.level = keepOnTop ? .floating : .normal
+            print(keepOnTop ? "🔝 Window set to stay on top" : "↔️ Window level set to normal")
+        }.store(in: &cancellables)
+
         Preferences.shared.$rowDensity.sink { [weak self] _ in
             self?.updateQueueWindowHeight()
         }.store(in: &cancellables)
@@ -297,7 +303,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Window configuration
         window.title = "ClipQueue (0)"
-        window.level = .floating  // Always on top
+        window.level = Preferences.shared.keepWindowOnTop ? .floating : .normal
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
 
@@ -706,14 +712,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             pasteContent += "\n"
         }
 
-        // Copy to clipboard
+        // Copy to clipboard (always plain text - formatting stripped at queue entry)
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(pasteContent, forType: .string)
 
         // Store content to avoid re-adding when pasted
         if removeFromQueue, !itemIds.isEmpty {
-            queueManager?.removeItems(ids: itemIds)
+            queueManager?.removeItems(ids: itemIds, saveToUndo: true)
         }
 
         // Mark items as pasted in history

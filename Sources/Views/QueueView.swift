@@ -223,11 +223,12 @@ struct QueueView: View {
                     }
                 }
                 .listStyle(.plain)
+                .id(queueManager.updateTrigger) // Force List to update when items change
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .contextMenu {
                     Button("Clear Queue") {
-                        queueManager.clearQueue()
+                        confirmAndClearQueue()
                     }
                 }
                 .onChange(of: selectedQueueIDs) { oldValue, newValue in
@@ -294,6 +295,18 @@ struct QueueView: View {
                 Spacer()
 
                 if preferences.selectedQueueTab == .queue {
+                    // Undo button (restore last pasted items)
+                    Button {
+                        queueManager.undoLastPaste()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: preferences.compactMode ? 12 : 14))
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(queueManager.undoStack.isEmpty)
+                    .help("Undo last paste (restore removed items)")
+
                     // Reverse queue button
                     Button {
                         queueManager.reverseQueue()
@@ -307,7 +320,7 @@ struct QueueView: View {
                     .help("Reverse queue order")
 
                     Button {
-                        queueManager.clearQueue()
+                        confirmAndClearQueue()
                     } label: {
                         Text("Clear")
                             .font(preferences.compactMode ? .caption : .body)
@@ -575,6 +588,24 @@ struct QueueView: View {
         let newValue = !item.isFavorite
         queueManager.updateFavorite(for: item, favorite: newValue)
         historyStore?.setFavorite(itemId: item.id, favorite: newValue)
+    }
+
+    private func confirmAndClearQueue() {
+        if preferences.confirmBeforeClear {
+            let alert = NSAlert()
+            alert.messageText = "Clear Queue?"
+            alert.informativeText = "This will remove all items from the queue. This action cannot be undone."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Clear")
+            alert.addButton(withTitle: "Cancel")
+
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                queueManager.clearQueue()
+            }
+        } else {
+            queueManager.clearQueue()
+        }
     }
 
     private func recordSelectionIntent(for item: ClipboardItem) {
@@ -1592,6 +1623,7 @@ struct LinkDetectingText: View {
     let lineLimit: Int
     let font: Font
     let foregroundStyle: Color
+    @ObservedObject private var preferences = Preferences.shared
 
     private static let urlPattern = try! NSRegularExpression(
         pattern: #"https?://[^\s<>\[\]{}|\\^`"']+"#,
@@ -1608,14 +1640,14 @@ struct LinkDetectingText: View {
     var body: some View {
         let segments = parseContent()
 
-        if segments.allSatisfy({ !$0.isURL }) {
-            // No URLs, just show plain text
+        if !preferences.highlightURLs || segments.allSatisfy({ !$0.isURL }) {
+            // Highlighting disabled or no URLs, just show plain text
             Text(content)
                 .lineLimit(lineLimit)
                 .font(font)
                 .foregroundStyle(foregroundStyle)
         } else {
-            // Has URLs, render with clickable links
+            // Has URLs and highlighting enabled, render with clickable links
             HStack(spacing: 0) {
                 ForEach(Array(segments.prefix(maxSegmentsForDisplay).enumerated()), id: \.offset) { _, segment in
                     if segment.isURL {
