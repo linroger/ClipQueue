@@ -522,6 +522,12 @@ struct BehaviorPreferencesView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
+                    Toggle("Press Command+Enter after paste", isOn: $preferences.pressEnterAfterPaste)
+
+                    Text("Automatically presses Cmd+Enter after pasting (useful for chat apps).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
                     HStack {
                         Text("Queue paste newline")
                             .frame(width: 140, alignment: .leading)

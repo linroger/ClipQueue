@@ -666,6 +666,12 @@ class Preferences: ObservableObject {
         }
     }
 
+    @Published var pressEnterAfterPaste: Bool {
+        didSet {
+            UserDefaults.standard.set(pressEnterAfterPaste, forKey: "pressEnterAfterPaste")
+        }
+    }
+
     @Published var queuePasteNewlineTrigger: QueuePasteNewlineTrigger {
         didSet {
             UserDefaults.standard.set(queuePasteNewlineTrigger.rawValue, forKey: "queuePasteNewlineTrigger")
@@ -903,6 +909,7 @@ class Preferences: ObservableObject {
         self.showCharacterCount = UserDefaults.standard.bool(forKey: "showCharacterCount")
         self.confirmBeforeClear = UserDefaults.standard.bool(forKey: "confirmBeforeClear")
         self.appendNewlineAfterPaste = UserDefaults.standard.bool(forKey: "appendNewlineAfterPaste")
+        self.pressEnterAfterPaste = UserDefaults.standard.bool(forKey: "pressEnterAfterPaste")
 
         let savedQueueNewline = UserDefaults.standard.string(forKey: "queuePasteNewlineTrigger") ?? QueuePasteNewlineTrigger.none.rawValue
         self.queuePasteNewlineTrigger = QueuePasteNewlineTrigger(rawValue: savedQueueNewline) ?? .none
@@ -1033,6 +1040,7 @@ class Preferences: ObservableObject {
         showCharacterCount = false
         confirmBeforeClear = false
         appendNewlineAfterPaste = false
+        pressEnterAfterPaste = false
         queuePasteNewlineTrigger = .none
         autoResizeWindowHeight = false
         copyAndRecordShortcut = KeyboardShortcut(

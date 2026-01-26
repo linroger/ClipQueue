@@ -266,29 +266,62 @@ class KeyboardShortcutManager {
             print("   Add ClipQueue and enable it")
             return
         }
-        
-        // Small delay to ensure clipboard is updated
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // Create Cmd+V key down event
+
+        // Activate the frontmost application to ensure focus
+        if let frontApp = NSWorkspace.shared.frontmostApplication {
+            frontApp.activate(options: [.activateIgnoringOtherApps])
+            print("⌨️ Activated frontmost app: \(frontApp.localizedName ?? "Unknown")")
+        }
+
+        // Delay to ensure clipboard is updated and app is activated
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             let source = CGEventSource(stateID: .hidSystemState)
-            
-            // Key down for 'V' with Command modifier
+
+            // Simulate Cmd+V
             if let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true) {
                 keyDown.flags = .maskCommand
                 keyDown.post(tap: .cghidEventTap)
-                
-                // Small delay between key down and key up
+
                 usleep(10000) // 10ms
-                
-                // Key up for 'V'
+
                 if let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false) {
                     keyUp.flags = .maskCommand
                     keyUp.post(tap: .cghidEventTap)
                 }
-                
+
                 print("⌨️ Simulated Cmd+V")
+
+                // Optionally simulate Cmd+Enter after paste
+                if Preferences.shared.pressEnterAfterPaste {
+                    self.simulateCommandEnter()
+                }
             } else {
                 print("⚠️ Failed to create paste event")
+            }
+        }
+    }
+
+    // Simulate Cmd+Enter
+    private func simulateCommandEnter() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let source = CGEventSource(stateID: .hidSystemState)
+
+            // Key down for 'Return' with Command modifier
+            if let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x24, keyDown: true) {
+                keyDown.flags = .maskCommand
+                keyDown.post(tap: .cghidEventTap)
+
+                usleep(10000) // 10ms
+
+                // Key up for 'Return'
+                if let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x24, keyDown: false) {
+                    keyUp.flags = .maskCommand
+                    keyUp.post(tap: .cghidEventTap)
+                }
+
+                print("⌨️ Simulated Cmd+Enter")
+            } else {
+                print("⚠️ Failed to create Cmd+Enter event")
             }
         }
     }
